@@ -17,10 +17,6 @@ A web-based tool to generate visual timetables from HKUST course schedule data.
 3. **Paste and Generate**: Paste the course information and click "Generate Timetable"
 4. **View Results**: Your courses will be displayed in a visual timetable format
 
-## Demo
-
-[Live Demo](https://yourusername.github.io/hkust-timetable-generator)
-
 ## Local Development
 
 1. Clone this repository
@@ -29,7 +25,7 @@ A web-based tool to generate visual timetables from HKUST course schedule data.
 
 ## Supported Course Prefixes
 
-UCUG, UFUG, AIAA, SMMG, DSAA, AMAT, BSBE, CMAA, CNCG, FDLE, EOAS, FTEC, FUNH, INFH, INTR, IOTA, IPEN, LANG, MIC, MSS, MP, DEVP, LED, ROAS, SEEN, SOCH, SYSH, UCMP, UGOD
+[UCUG, UFUG, AIAA, SMMG, DSAA, AMAT, BSBE, CMAA, CNCG, FDLE, EOAS, FTEC, FUNH, INFH, INTR, IOTA, IPEN, LANG, MIC, MSS, MP, DEVP, LED, ROAS, SEEN, SOCH, SYSH, UCMP, UGOD](https://w5.hkust-gz.edu.cn/wcq/cgi-bin/2510/)
 
 ## Contributing
 
