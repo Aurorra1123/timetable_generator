@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课表生成器</title>
+    <style>
+        /* --- 基本样式 --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        /* --- 输入区域 --- */
+        .input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        #course-input {
+            width: 100%;
+            height: 200px;
+            border: 2px solid #dde2e7;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        #course-input:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+
+        #generate-btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            align-self: center;
+        }
+
+        #generate-btn:hover {
+            background-color: #357abd;
+        }
+
+        /* --- 课表网格 --- */
+        #timetable-container {
+            display: grid;
+            grid-template-columns: 60px repeat(5, 1fr); /* 时间列 + 5天 */
+            grid-template-rows: 50px; /* 星期标题行 */
+            background-color: white;
+            border: 1px solid #e0e0e0;
+        }
+
+        .grid-header {
+            font-weight: bold;
+            text-align: center;
+            padding: 15px 5px;
+            border-bottom: 2px solid #e0e0e0;
+            border-left: 1px solid #e0e0e0;
+            background-color: #f9fafb;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .time-label-col {
+            position: relative;
+        }
+
+        .time-label {
+            position: absolute;
+            right: 8px;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: #888;
+        }
+
+        .day-column {
+            position: relative;
+            border-left: 1px solid #e0e0e0;
+            /* 用于画横线 */
+            background-image: linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
+            background-size: 100% 60px; /* 每小时一条线 */
+        }
+        
+        .grid-header:first-child, .day-column:first-child {
+            border-left: none;
+        }
+
+        /* --- 课程块样式 --- */
+        .event-item {
+            position: absolute;
+            left: 4px;
+            right: 4px;
+            border-radius: 6px;
+            padding: 8px;
+            box-sizing: border-box;
+            overflow: hidden;
+            font-size: 13px;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .event-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 20;
+        }
+
+        .event-title {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .event-details {
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        /* --- 冲突课程样式 --- */
+        .conflict-item {
+            border: 2px solid rgba(255, 255, 255, 0.8) !important;
+        }
+
+        .conflict-item .event-title {
+            font-size: 12px; /* 冲突时标题稍小 */
+        }
+
+        .conflict-item .event-details {
+            font-size: 10px; /* 冲突时详情更小 */
+            line-height: 1.2;
+        }
+
+        /* --- Tutorial样式 --- */
+        .tutorial-section {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .tutorial-steps .step {
+            margin-bottom: 25px;
+            padding: 20px;
+            border-left: 4px solid #4a90e2;
+            background-color: #f8f9fa;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .tutorial-steps .step h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .tutorial-steps .step p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .tutorial-tips, .tutorial-notice {
+            max-width: 100%;
+        }
+
+        .tutorial-tips h4, .tutorial-notice h4 {
+            margin-top: 0;
+        }
+
+        .tutorial-tips ul, .tutorial-notice ul {
+            line-height: 1.6;
+        }
+
+        /* --- Tutorial切换功能样式 --- */
+        .tutorial-content {
+            transition: all 0.5s ease-in-out;
+            overflow: hidden;
+            margin-bottom: 0;
+        }
+
+        .tutorial-content.hidden {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+        .tutorial-content.visible {
+            max-height: 3000px;
+            opacity: 1;
+            margin-bottom: 30px;
+        }
+
+        /* 确保tutorial section有足够的空间 */
+        .tutorial-section {
+            margin-bottom: 20px;
+            transition: margin-bottom 0.5s ease-in-out;
+        }
+
+        .tutorial-section.expanded {
+            margin-bottom: 40px;
+        }
+
+        #tutorial-toggle:hover {
+            background-color: #357abd;
+            transform: translateY(-1px);
+        }
+
+        #tutorial-toggle:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>HKUST Course Timetable Generator</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 20px; font-size: 16px;">Check the HKUST/HKUST(GZ) timetable during the add/drop period</p>
+        
+        <!-- Tutorial Section -->
+        <div class="tutorial-section" style="margin-bottom: 30px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: #2c3e50; margin-bottom: 15px; display: inline-block;">📚 How to Use Tutorial</h2>
+                <button id="tutorial-toggle" style="margin-left: 15px; padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 14px; transition: all 0.3s;">
+                    Show Tutorial
+                </button>
+            </div>
+            
+            <div id="tutorial-content" class="tutorial-content">
+            <div class="tutorial-steps">
+                <div class="step">
+                    <h3 style="color: #4a90e2;">Step 1: Go to Add Classes Page</h3>
+                    <p>Login to SIS and go to <strong>[Student Center -> Enroll -> Add]</strong></p>
+                    <p>You may need to select the correct term and click "Continue".</p>
+                    <div style="text-align: center; margin: 15px 0;">
+                        <img src="img/step1.jpg" alt="Step 1 Screenshot" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <h3 style="color: #4a90e2;">Step 2: Select Courses and Copy</h3>
+                    <p>Dragging the pointer or finger to select courses.</p>
+                    <p><strong>(You do NOT need to carefully select each course)</strong></p>
+                    <p>The converter will recognize which courses are included.</p>
+                    <div style="text-align: center; margin: 15px 0;">
+                        <img src="img/step2.jpg" alt="Step 2 Screenshot" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <h3 style="color: #4a90e2;">Step 3: Paste and Generate</h3>
+                    <p>Copy the selected courses and paste them to the text area below.</p>
+                    <p>Click the <strong>"Generate Timetable"</strong> button.</p>
+                    <p>The generator will extract and display your course schedule.</p>
+                </div>
+                
+                <div class="step">
+                    <h3 style="color: #4a90e2;">Step 4: View Your Timetable</h3>
+                    <p>Your courses will be displayed in a visual timetable format.</p>
+                    <p>Time conflicts will be shown side by side for easy comparison.</p>
+                </div>
+            </div>
+            
+            <div class="tutorial-tips" style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                <h4 style="color: #2c3e50; margin-bottom: 10px;">💡 Tips:</h4>
+                <ul style="margin: 0; padding-left: 20px;">
+                    <li>You can press <strong>Ctrl + A</strong> to select all page content - extra information won't affect the result.</li>
+                    <li>The generator supports courses from UCUG, UFUG, AIAA, SMMG, DSAA and other HKUST departments.</li>
+                    <li>Time conflicts are automatically detected and displayed side by side.</li>
+                </ul>
+            </div>
+            
+            <div class="tutorial-notice" style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #ffc107;">
+                <h4 style="color: #856404; margin-bottom: 10px;">⚠️ Notice:</h4>
+                <ul style="margin: 0; padding-left: 20px; color: #856404;">
+                    <li>The generator may not work properly if course information is not copied correctly.</li>
+                    <li>Make sure to copy from the official HKUST SIS system.</li>
+                    <li>If you find any bugs, please report them with screenshots and course information.</li>
+                </ul>
+            </div>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <textarea id="course-input" placeholder="Paste your course information here..."></textarea>
+            <button id="generate-btn">Generate Timetable</button>
+        </div>
+        <div id="timetable-container">
+            </div>
+    </div>
+
+    <script>
+        // Tutorial切换功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const tutorialToggle = document.getElementById('tutorial-toggle');
+            const tutorialContent = document.getElementById('tutorial-content');
+            const tutorialSection = document.querySelector('.tutorial-section');
+            let isHidden = true;
+
+            // 初始状态设为隐藏
+            tutorialContent.classList.add('hidden');
+
+            tutorialToggle.addEventListener('click', function() {
+                if (isHidden) {
+                    // 显示tutorial
+                    tutorialContent.classList.remove('hidden');
+                    tutorialContent.classList.add('visible');
+                    tutorialSection.classList.add('expanded');
+                    tutorialToggle.textContent = 'Hide Tutorial';
+                    tutorialToggle.style.backgroundColor = '#4a90e2';
+                } else {
+                    // 隐藏tutorial
+                    tutorialContent.classList.remove('visible');
+                    tutorialContent.classList.add('hidden');
+                    tutorialSection.classList.remove('expanded');
+                    tutorialToggle.textContent = 'Show Tutorial';
+                    tutorialToggle.style.backgroundColor = '#28a745';
+                }
+                isHidden = !isHidden;
+            });
+        });
+
+        document.getElementById('generate-btn').addEventListener('click', function() {
+            const rawText = document.getElementById('course-input').value;
+            const courses = parseCourseText(rawText);
+            renderTimetable(courses);
+        });
+
+        // 解析粘贴的文本
+        function parseCourseText(text) {
+            // 预处理：删除包含"Open"和"Delete"的行
+            const cleanedText = text.split('\n')
+                .filter(line => {
+                    const trimmedLine = line.trim();
+                    return !trimmedLine.includes('Open') && !trimmedLine.includes('Delete');
+                })
+                .join('\n');
+            
+            // 使用课程代码作为分割标志，而不是依赖空行
+            const allCourses = [];
+            const dayMap = { 'Mo': 'Mon', 'Tu': 'Tue', 'We': 'Wed', 'Th': 'Thu', 'Fr': 'Fri' };
+            const validPrefixes = ['UCUG', 'UFUG', 'AIAA', 'SMMG', 'DSAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD'];
+            
+            // 将文本按行分割
+            const allLines = cleanedText.split('\n').map(l => l.trim()).filter(l => l);
+            
+            // 找到所有课程代码行的索引
+            const courseStartIndices = [];
+            for (let i = 0; i < allLines.length; i++) {
+                const line = allLines[i];
+                if (validPrefixes.some(prefix => line.startsWith(prefix))) {
+                    courseStartIndices.push(i);
+                }
+            }
+            
+            // 按课程代码分割成课程块
+            for (let i = 0; i < courseStartIndices.length; i++) {
+                const startIndex = courseStartIndices[i];
+                const endIndex = i < courseStartIndices.length - 1 ? courseStartIndices[i + 1] : allLines.length;
+                
+                // 提取当前课程的所有行
+                const courseLines = allLines.slice(startIndex, endIndex);
+                if (courseLines.length < 4) continue; // 至少需要4行：课程名、编号、时间、地点
+
+                const course = {};
+                course.code = courseLines[0]; // 第一行就是课程代码
+                
+                // 查找时间行（格式：MoWe 16:30 - 17:50）
+                let timeLineIndex = -1;
+                for (let j = 0; j < courseLines.length; j++) {
+                    if (/^(Mo|Tu|We|Th|Fr)+ \d{2}:\d{2} - \d{2}:\d{2}/.test(courseLines[j])) {
+                        timeLineIndex = j;
+                        break;
+                    }
+                }
+                
+                if (timeLineIndex === -1) continue; // 没找到时间行，跳过这个课程
+
+                // 解析时间行
+                const timeLine = courseLines[timeLineIndex];
+                const timeMatch = timeLine.match(/^([MoTuWeThFr]+) (\d{2}:\d{2}) - (\d{2}:\d{2})/);
+                if (!timeMatch) continue;
+                
+                const [, daysStr, startTime, endTime] = timeMatch;
+                course.startTime = startTime;
+                course.endTime = endTime;
+                
+                // 地点通常在时间行的下一行
+                let locationLineIndex = timeLineIndex + 1;
+                if (locationLineIndex < courseLines.length && courseLines[locationLineIndex].startsWith('Rm')) {
+                    course.location = courseLines[locationLineIndex];
+                } else {
+                    course.location = '未知地点';
+                }
+                
+                // 教师信息在地点之后，学分之前
+                let instructorLines = [];
+                for (let j = locationLineIndex + 1; j < courseLines.length; j++) {
+                    const line = courseLines[j];
+                    // 跳过课程编号（括号包围的数字）和学分（如3.00）
+                    if (!/^\(\d+\)$/.test(line) && !/^\d+\.\d{2}$/.test(line) && line !== '') {
+                        instructorLines.push(line);
+                    }
+                }
+                course.instructor = instructorLines.join(', ') || '未知教师';
+
+                // 处理多天课程 (如 MoWe, TuTh)
+                const days = daysStr.match(/(Mo|Tu|We|Th|Fr)/g);
+                if (days) {
+                    days.forEach(day => {
+                        allCourses.push({
+                            ...course,
+                            day: dayMap[day]
+                        });
+                    });
+                }
+            }
+            return allCourses;
+        }
+        
+        // 检测时间冲突
+        function detectTimeConflicts(courses) {
+            const conflictGroups = [];
+            const processed = new Set();
+            
+            for (let i = 0; i < courses.length; i++) {
+                if (processed.has(i)) continue;
+                
+                const currentCourse = courses[i];
+                const conflictGroup = [currentCourse];
+                processed.add(i);
+                
+                // 检查与其他课程的时间冲突
+                for (let j = i + 1; j < courses.length; j++) {
+                    if (processed.has(j)) continue;
+                    
+                    const otherCourse = courses[j];
+                    if (hasTimeOverlap(currentCourse, otherCourse)) {
+                        conflictGroup.push(otherCourse);
+                        processed.add(j);
+                    }
+                }
+                
+                conflictGroups.push(conflictGroup);
+            }
+            
+            return conflictGroups;
+        }
+        
+        // 检查两个课程是否有时间重叠
+        function hasTimeOverlap(course1, course2) {
+            const [start1H, start1M] = course1.startTime.split(':').map(Number);
+            const [end1H, end1M] = course1.endTime.split(':').map(Number);
+            const [start2H, start2M] = course2.startTime.split(':').map(Number);
+            const [end2H, end2M] = course2.endTime.split(':').map(Number);
+            
+            const start1Minutes = start1H * 60 + start1M;
+            const end1Minutes = end1H * 60 + end1M;
+            const start2Minutes = start2H * 60 + start2M;
+            const end2Minutes = end2H * 60 + end2M;
+            
+            // 检查时间段是否有重叠
+            return !(end1Minutes <= start2Minutes || end2Minutes <= start1Minutes);
+        }
+        
+        // 渲染课表
+        function renderTimetable(courses) {
+            const container = document.getElementById('timetable-container');
+            container.innerHTML = ''; // 清空旧课表
+
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+            const startHour = 8;
+            const endHour = 22;
+            const totalHours = endHour - startHour;
+            const hourHeight = 60; // 每小时60像素
+
+            // --- 1. 创建网格框架 ---
+            // 星期标题行
+            container.innerHTML += `<div class="grid-header"></div>`; // 左上角空白格
+            days.forEach(day => {
+                let dayName = {Mon: 'Mon', Tue: 'Tue', Wed: 'Wed', Thu: 'Thu', Fri: 'Fri'}[day];
+                container.innerHTML += `<div class="grid-header">${dayName}</div>`;
+            });
+
+            // 时间列和每日列
+            const timeCol = document.createElement('div');
+            timeCol.className = 'time-label-col';
+            
+            const dayCols = days.map(day => {
+                const col = document.createElement('div');
+                col.className = 'day-column';
+                col.style.height = `${totalHours * hourHeight}px`;
+                return col;
+            });
+
+            // 添加时间刻度
+            for (let i = 0; i <= totalHours; i++) {
+                const hour = startHour + i;
+                const timeLabel = document.createElement('div');
+                timeLabel.className = 'time-label';
+                timeLabel.innerText = `${hour.toString().padStart(2, '0')}:00`;
+                timeLabel.style.top = `${i * hourHeight}px`;
+                timeCol.appendChild(timeLabel);
+            }
+            
+            container.appendChild(timeCol);
+            dayCols.forEach(col => container.appendChild(col));
+
+            // --- 2. 检测时间冲突并放置课程块 ---
+            const courseColors = {};
+            const colors = ['#e57373', '#81c784', '#64b5f6', '#ffb74d', '#ba68c8', '#4dd0e1', '#f06292', '#7986cb'];
+            let colorIndex = 0;
+
+            // 按天分组课程
+            const coursesByDay = {};
+            days.forEach(day => coursesByDay[day] = []);
+            
+            courses.forEach(course => {
+                if (days.includes(course.day)) {
+                    coursesByDay[course.day].push(course);
+                }
+            });
+
+            // 为每天检测冲突并渲染课程
+            days.forEach((day, dayIndex) => {
+                const dayCourses = coursesByDay[day];
+                if (dayCourses.length === 0) return;
+
+                // 检测时间冲突
+                const conflictGroups = detectTimeConflicts(dayCourses);
+                
+                conflictGroups.forEach(group => {
+                    const conflictCount = group.length;
+                    
+                    group.forEach((course, conflictIndex) => {
+                        // 分配颜色
+                        const baseCode = course.code.split('-')[0];
+                        if (!courseColors[baseCode]) {
+                            courseColors[baseCode] = colors[colorIndex % colors.length];
+                            colorIndex++;
+                        }
+                        const color = courseColors[baseCode];
+
+                        // 计算位置
+                        const [startH, startM] = course.startTime.split(':').map(Number);
+                        const [endH, endM] = course.endTime.split(':').map(Number);
+
+                        const top = ((startH - startHour) + startM / 60) * hourHeight;
+                        const height = ((endH + endM / 60) - (startH + startM / 60)) * hourHeight;
+                        
+                        // 创建课程块元素
+                        const eventEl = document.createElement('div');
+                        eventEl.className = 'event-item';
+                        eventEl.style.top = `${top}px`;
+                        eventEl.style.height = `${height - 2}px`;
+                        eventEl.style.backgroundColor = color;
+                        
+                        // 处理冲突布局：并排显示
+                        if (conflictCount > 1) {
+                            const width = Math.floor(100 / conflictCount);
+                            const leftOffset = width * conflictIndex;
+                            eventEl.style.width = `${width - 1}%`; // 减1%留间距
+                            eventEl.style.left = `${leftOffset}%`;
+                            eventEl.style.right = 'auto';
+                            eventEl.classList.add('conflict-item');
+                        }
+
+                        eventEl.innerHTML = `
+                            <div class="event-title">${course.code}</div>
+                            <div class="event-details">
+                                ${course.instructor}<br>
+                                ${course.location}
+                            </div>
+                        `;
+                        
+                        dayCols[dayIndex].appendChild(eventEl);
+                    });
+                });
+            });
+        }
+        
+        // 页面加载时提供一个示例
+        document.addEventListener('DOMContentLoaded', () => {
+             document.getElementById('course-input').value = `AIAA 2290-L02
+(6367)
+Fr 13:30 - 16:20
+Rm 149, E1
+HU, Xuming
+3.00
+Open
+Delete
+UCUG 1077-L04
+(6473)
+MoWe 09:00 - 10:20
+Rm 148, E1
+LUO, Moxuan
+3.00
+Open
+Delete
+UCUG 1809-L01
+(6683)
+Tu 12:00 - 14:50
+Rm 233, W1
+MA, Jinyuan;
+ZHU, Junhua
+3.00
+Open
+Delete
+UFUG 2103-L06
+(6575)
+MoWe 10:30 - 11:50
+Rm 102, W1
+YU, Huan
+3.00
+Open
+UFUG 2104-L01
+(6603)
+TuTh 10:30 - 11:50
+Rm 222, W1
+ZHANG, Xuning
+3.00`;
+        });
+
+    </script>
+</body>
+</html>
