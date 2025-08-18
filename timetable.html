@@ -405,11 +405,26 @@
 
         // 解析粘贴的文本
         function parseCourseText(text) {
-            // 预处理：删除包含"Open"和"Delete"的行
+            // 预处理：删除包含无关内容的行
             const cleanedText = text.split('\n')
                 .filter(line => {
                     const trimmedLine = line.trim();
-                    return !trimmedLine.includes('Open') && !trimmedLine.includes('Delete');
+                    // 过滤掉常见的页面元素和无关内容
+                    const unwantedPatterns = [
+                        'Open', 'Delete', 'Closed', 'Wait List', 'Add to Cart',
+                        'Enter Class Nbr', 'Find Classes', 'Class Search', 'My Requirements',
+                        'Shopping Cart', 'Days/Times', 'Room', 'Instructor', 'Units', 'Status',
+                        'Change Term', 'Step 1', 'Step 2', 'Step 3', 'Proceed to Step',
+                        'My Class Schedule', 'Request for Approval', 'Click here for approval',
+                        'GO!', 'go to', 'Search', 'Plan', 'Enroll', 'My Academics',
+                        'add', 'drop', 'swap', 'term information', 'You are not registered',
+                        'Select classes', 'Change', 'Enter', 'Collapsible section'
+                    ];
+                    
+                    // 如果行包含任何不需要的模式，就过滤掉
+                    return !unwantedPatterns.some(pattern => 
+                        trimmedLine.toLowerCase().includes(pattern.toLowerCase())
+                    );
                 })
                 .join('\n');
             
@@ -438,6 +453,12 @@
                 // 提取当前课程的所有行
                 const courseLines = allLines.slice(startIndex, endIndex);
                 if (courseLines.length < 4) continue; // 至少需要4行：课程名、编号、时间、地点
+
+                // 验证课程块的有效性：必须包含课程编号和时间信息
+                const hasValidStructure = courseLines.some(line => /^\(\d+\)$/.test(line.trim())) && 
+                                        courseLines.some(line => /^(Mo|Tu|We|Th|Fr)+ \d{2}:\d{2} - \d{2}:\d{2}/.test(line.trim()));
+                
+                if (!hasValidStructure) continue; // 跳过无效的课程块
 
                 const course = {};
                 course.code = courseLines[0]; // 第一行就是课程代码
