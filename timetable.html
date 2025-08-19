@@ -431,7 +431,7 @@
             // 使用课程代码作为分割标志，而不是依赖空行
             const allCourses = [];
             const dayMap = { 'Mo': 'Mon', 'Tu': 'Tue', 'We': 'Wed', 'Th': 'Thu', 'Fr': 'Fri' };
-            const validPrefixes = ['UCUG', 'UFUG', 'AIAA', 'SMMG', 'DSAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD'];
+            const validPrefixes = ['UCUG', 'UFUG', 'AIAA', 'SMMG', 'DSAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD','DLED','AIAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD'];
             
             // 将文本按行分割
             const allLines = cleanedText.split('\n').map(l => l.trim()).filter(l => l);
