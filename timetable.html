@@ -460,58 +460,70 @@
                 
                 if (!hasValidStructure) continue; // 跳过无效的课程块
 
-                const course = {};
-                course.code = courseLines[0]; // 第一行就是课程代码
+                const baseCourse = {};
+                baseCourse.code = courseLines[0]; // 第一行就是课程代码
                 
-                // 查找时间行（格式：MoWe 16:30 - 17:50）
-                let timeLineIndex = -1;
+                // 查找所有时间行（可能有多个时间段）
+                const timeLines = [];
                 for (let j = 0; j < courseLines.length; j++) {
                     if (/^(Mo|Tu|We|Th|Fr)+ \d{2}:\d{2} - \d{2}:\d{2}/.test(courseLines[j])) {
-                        timeLineIndex = j;
+                        timeLines.push({
+                            index: j,
+                            line: courseLines[j]
+                        });
+                    }
+                }
+                
+                if (timeLines.length === 0) continue; // 没找到时间行，跳过这个课程
+
+                // 找到地点信息（通常在最后一个时间行之后）
+                let location = '未知地点';
+                const lastTimeIndex = timeLines[timeLines.length - 1].index;
+                for (let j = lastTimeIndex + 1; j < courseLines.length; j++) {
+                    if (courseLines[j].startsWith('Rm')) {
+                        location = courseLines[j];
                         break;
                     }
                 }
                 
-                if (timeLineIndex === -1) continue; // 没找到时间行，跳过这个课程
-
-                // 解析时间行
-                const timeLine = courseLines[timeLineIndex];
-                const timeMatch = timeLine.match(/^([MoTuWeThFr]+) (\d{2}:\d{2}) - (\d{2}:\d{2})/);
-                if (!timeMatch) continue;
-                
-                const [, daysStr, startTime, endTime] = timeMatch;
-                course.startTime = startTime;
-                course.endTime = endTime;
-                
-                // 地点通常在时间行的下一行
-                let locationLineIndex = timeLineIndex + 1;
-                if (locationLineIndex < courseLines.length && courseLines[locationLineIndex].startsWith('Rm')) {
-                    course.location = courseLines[locationLineIndex];
-                } else {
-                    course.location = '未知地点';
-                }
-                
-                // 教师信息在地点之后，学分之前
+                // 找到教师信息（在地点之后，学分之前）
                 let instructorLines = [];
-                for (let j = locationLineIndex + 1; j < courseLines.length; j++) {
+                let foundLocation = false;
+                for (let j = 0; j < courseLines.length; j++) {
                     const line = courseLines[j];
-                    // 跳过课程编号（括号包围的数字）和学分（如3.00）
-                    if (!/^\(\d+\)$/.test(line) && !/^\d+\.\d{2}$/.test(line) && line !== '') {
+                    if (line.startsWith('Rm')) {
+                        foundLocation = true;
+                        continue;
+                    }
+                    if (foundLocation && !/^\(\d+\)$/.test(line) && !/^\d+\.\d{2}$/.test(line) && 
+                        !/^(Mo|Tu|We|Th|Fr)+ \d{2}:\d{2} - \d{2}:\d{2}/.test(line) && line !== '') {
                         instructorLines.push(line);
                     }
                 }
-                course.instructor = instructorLines.join(', ') || '未知教师';
+                const instructor = instructorLines.join(', ') || '未知教师';
 
-                // 处理多天课程 (如 MoWe, TuTh)
-                const days = daysStr.match(/(Mo|Tu|We|Th|Fr)/g);
-                if (days) {
-                    days.forEach(day => {
-                        allCourses.push({
-                            ...course,
-                            day: dayMap[day]
+                // 处理每个时间段
+                timeLines.forEach(timeLine => {
+                    const timeMatch = timeLine.line.match(/^([MoTuWeThFr]+) (\d{2}:\d{2}) - (\d{2}:\d{2})/);
+                    if (!timeMatch) return;
+                    
+                    const [, daysStr, startTime, endTime] = timeMatch;
+                    
+                    // 处理多天课程 (如 MoWe, TuTh) 或单天课程 (如 Mo, Fr)
+                    const days = daysStr.match(/(Mo|Tu|We|Th|Fr)/g);
+                    if (days) {
+                        days.forEach(day => {
+                            allCourses.push({
+                                ...baseCourse,
+                                startTime: startTime,
+                                endTime: endTime,
+                                location: location,
+                                instructor: instructor,
+                                day: dayMap[day]
+                            });
                         });
-                    });
-                }
+                    }
+                });
             }
             return allCourses;
         }
