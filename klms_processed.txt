@@ -1,0 +1,356 @@
+MOES1001-L1
+(6465)
+Fr 18:00 - 20:50
+Rm LHB, C4
+TBA
+3.00
+
+MOES1003-L1
+(6466)
+Mo 18:00 - 20:50
+Rm LHA, C5
+Zhongjing WANG
+3.00
+
+MOES1003-L2
+(6485)
+We 18:00 - 20:50
+Rm LHB, C4
+Zhongjing WANG
+3.00
+
+MOES1003-L3
+(6486)
+Fr 15:00 - 17:50
+Rm 101, W1
+Tieying XU
+3.00
+
+MOES1003-L4
+(6487)
+Tu 18:00 - 20:50
+Rm LHC-L1, C3
+TBA
+3.00
+
+MOES1006-L1
+(6502)
+Th 18:00 - 20:50
+Rm LHB, C4
+He ZHENG
+3.00
+
+MOES1006-L2
+(6503)
+We 12:00 - 14:50
+Rm 102, E4
+He ZHENG
+3.00
+
+MOES1006-L3
+(6504)
+Fr 09:00 - 11:50
+Rm LHA, C5
+Tieying XU
+3.00
+
+MOES1103-Aerobic Dance I
+(6638)
+We 15:00 - 16:20
+Badminton Court 8
+Jiajia Hu
+3.00
+
+MOES1103-Aerobic Dance II
+(6639)
+We 16:30 - 17:50
+Badminton Court 8
+Jiajia Hu
+3.00
+
+MOES1103-Badminton I
+(6591)
+Tu 16:30 - 17:50
+Badminton Court
+Weidong LI
+3.00
+
+MOES1103-Badminton II
+(6600)
+Tu 18:00 - 19:20
+Badminton Court
+Weidong LI
+3.00
+
+MOES1103-Badminton III
+(6601)
+We 09:00 - 10:20
+Badminton Court
+Noah Bo FANG
+3.00
+
+MOES1103-Badminton IV
+(6602)
+We 10:30 - 11:50
+Badminton Court
+Noah Bo FANG
+3.00
+
+MOES1103-Basketball I
+(6568)
+Mo 15:00 - 16:30
+Basketball Court
+Chunhui WANG
+3.00
+
+MOES1103-Basketball II
+(6569)
+Mo 16:30 - 17:50
+Basketball Court
+Chunhui WANG
+3.00
+
+MOES1103-Basketball III
+(6584)
+Mo 18:00 - 19:20
+Basketball Court
+Chunhui WANG
+3.00
+
+MOES1103-Brazilian Jiujitsu Advanced
+(6672)
+Tu 09:00 - 10:20
+Multifunctional Gym Mat
+Dongye LYU
+3.00
+
+MOES1103-Brazilian Jiujitsu Basic and Self defense
+(6673)
+Tu 10:30 - 11:50
+Multifunctional Gym Mat
+Dongye LYU
+3.00
+
+MOES1103-Chinese Archery Advanced
+(6688)
+Th 17:00 - 18:20
+Badminton Court 8
+Chao JI
+3.00
+
+MOES1103-Chinese Archery Basics
+(6687)
+Th 15:30 - 16:50
+Badminton Court 8
+Chao JI
+3.00
+
+MOES1103-Chinese Body Building & Fitness (Healthcare class)
+(6671)
+Tu 18:00 - 19:20
+Badminton Court 8
+Zhijun ZHOU
+3.00
+
+MOES1103-Chinese Dance
+(6686)
+Mo 16:00 - 17:20
+Dance Room 116
+Yi XIE
+3.00
+
+MOES1103-CrossFit and Weight Training
+(6689)
+Tu 15:00 - 16:20
+Multifunctional Gym Mat
+Zhijun ZHOU
+3.00
+
+MOES1103-Sanda I
+(6626)
+We 15:00 - 16:20
+Multifunctional Gym Mat
+Chenlei MIAO
+3.00
+
+MOES1103-Sanda II
+(6627)
+We 16:30 - 17:50
+Multifunctional Gym Mat
+Chenlei MIAO
+3.00
+
+MOES1103-Soccer I
+(6587)
+Tu 18:00 - 19:20
+Football Field
+Junye HUANG
+3.00
+
+MOES1103-Soccer II
+(6588)
+Tu 19:30 - 20:50
+Football Field
+Junye HUANG
+3.00
+
+MOES1103-Soccer III
+(6589)
+We 18:00 - 19:20
+Football Field
+Junye HUANG
+3.00
+
+MOES1103-Soccer IV
+(6590)
+We 19:30 - 20:50
+Football Field
+Junye HUANG
+3.00
+
+MOES1103-Squash Advanced
+(6650)
+We 18:30 - 19:50
+Squash Court
+Jianfeng HUANG
+3.00
+
+MOES1103-Squash Basic I
+(6640)
+We 15:00 - 16:20
+Squash Court
+Jianfeng HUANG
+3.00
+
+MOES1103-Squash Basic II
+(6641)
+We 16:30 - 17:50
+Squash Court
+Jianfeng HUANG
+3.00
+
+MOES1103-Swimming I
+(6674)
+Mo 09:00 - 10:20
+Swimming Pool
+Xiaoying CHEN
+3.00
+
+MOES1103-Swimming II
+(6684)
+Mo 10:30 - 11:50
+Swimming Pool
+Xiaoying CHEN
+3.00
+
+MOES1103-Swimming II
+(6685)
+Mo 13:30 - 14:50
+Swimming Pool
+Xiaoying CHEN
+3.00
+
+MOES1103-Table Tennis I
+(6611)
+Tu 15:00 - 16:20
+Table Tennis Court
+Zilu QU
+3.00
+
+MOES1103-Table Tennis II
+(6612)
+Tu 16:30 - 17:50
+Table Tennis Court
+Zilu QU
+3.00
+
+MOES1103-Table Tennis III
+(6613)
+Tu 18:00 - 19:20
+Table Tennis Court
+Zilu QU
+3.00
+
+MOES1103-Table Tennis IV
+(6614)
+Th 16:30 - 17:50
+Table Tennis Court
+Zilu QU
+3.00
+
+MOES1103-Table Tennis V
+(6615)
+Th 18:00 - 19:20
+Table Tennis Court
+Zilu QU
+3.00
+
+MOES1103-Tennis I
+(6690)
+Tu 16:30 - 17:50
+Tennis Court
+Zhijun ZHOU
+3.00
+
+MOES1103-Tennis II
+(6691)
+We 16:30 - 17:50
+Tennis Court
+Noah Bo FANG
+3.00
+
+MOES1103-Volleyball I
+(6585)
+Tu 15:00 - 16:20
+Volleyball Court
+Yongguan DAI
+3.00
+
+MOES1103-Volleyball II
+(6586)
+Tu 16:30 - 17:50
+Volleyball Court
+Yongguan DAI
+3.00
+
+MOES1103-Wushu Historical Fencing I
+(6651)
+Tu 15:00 - 16:20
+Badminton Court 5
+Chenlei MIAO
+3.00
+
+MOES1103-Wushu Historical Fencing II
+(6652)
+Tu 16:30 - 17:50
+Badminton Court 5
+Chenlei MIAO
+3.00
+
+MOES1103-Wushu(Taolu) I
+(6628)
+We 15:00 - 16:20
+Badminton Court 5
+Ran LI
+3.00
+
+MOES1103-Wushu(Taolu) II
+(6629)
+We 16:30 - 17:50
+Badminton Court 5
+Ran LI
+3.00
+
+MOES1103-Yoga I (Healthcare Class)
+(6669)
+Tu 16:30 - 17:50
+Dance Room 116
+Shengnan HE
+3.00
+
+MOES1103-Yoga II (Healthcare Class)
+(6670)
+Tu 18:00 - 19:20
+Dance Room 116
+Shengnan HE
+3.00

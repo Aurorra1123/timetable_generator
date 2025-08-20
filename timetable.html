@@ -287,9 +287,19 @@
                     <p>Click the <strong>"Generate Timetable"</strong> button.</p>
                     <p>The generator will extract and display your course schedule.</p>
                 </div>
+
+                <div class="step">
+                    <h3 style="color: #4a90e2;">Step 4: Add PE and Politics Courses</h3>
+                    <p>Click the <strong>"Add PE and Politics Courses"</strong> button.</p>
+                    <p>Select the courses you want to add.</p>
+                    <p>Click the <strong>"Add Selected Courses"</strong> button.</p>
+                    <div style="text-align: center; margin: 15px 0;">
+                        <img src="img/step3.jpg" alt="Step 3 Screenshot" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    </div>
+                </div>
                 
                 <div class="step">
-                    <h3 style="color: #4a90e2;">Step 4: View Your Timetable</h3>
+                    <h3 style="color: #4a90e2;">Step 5: View Your Timetable</h3>
                     <p>Your courses will be displayed in a visual timetable format.</p>
                     <p>Time conflicts will be shown side by side for easy comparison.</p>
                 </div>
@@ -321,6 +331,38 @@
         </div>
         <div id="timetable-container">
             </div>
+            
+        <!-- 课程选择模块 -->
+        <div id="course-selector" style="display: none; margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">
+            <h3 style="color: #2c3e50; margin-bottom: 20px; text-align: center;">📚 添加体育课和思政课</h3>
+            
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <!-- 思政课选择 -->
+                <div style="flex: 1; min-width: 300px;">
+                    <h4 style="color: #4a90e2; margin-bottom: 15px;">🎓 思政课程</h4>
+                    <div id="politics-courses" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; padding: 10px; background-color: white;">
+                        <!-- 思政课程选项将通过JS动态加载 -->
+                    </div>
+                </div>
+                
+                <!-- 体育课选择 -->
+                <div style="flex: 1; min-width: 300px;">
+                    <h4 style="color: #4a90e2; margin-bottom: 15px;">🏃 体育课程</h4>
+                    <div id="pe-courses" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; padding: 10px; background-color: white;">
+                        <!-- 体育课程选项将通过JS动态加载 -->
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="add-selected-courses" style="background-color: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; margin-right: 10px;">
+                    添加选中课程
+                </button>
+                <button id="clear-added-courses" style="background-color: #dc3545; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px;">
+                    清除已添加课程
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Footer -->
@@ -345,7 +387,7 @@
             <div style="color: white; margin-top: 15px; font-size: 16px;">
                 Thank you for your support! 🙏
             </div>
-        </div>
+            </div>
     </div>
 
     <script>
@@ -397,10 +439,19 @@
             }
         });
 
+        // 全局变量
+        let mainCourses = [];
+        let additionalCourses = [];
+        let selectedAdditionalCourses = [];
+
         document.getElementById('generate-btn').addEventListener('click', function() {
             const rawText = document.getElementById('course-input').value;
-            const courses = parseCourseText(rawText);
-            renderTimetable(courses);
+            mainCourses = parseCourseText(rawText);
+            renderTimetable([...mainCourses, ...selectedAdditionalCourses]);
+            
+            // 显示课程选择模块
+            document.getElementById('course-selector').style.display = 'block';
+            loadAdditionalCourses();
         });
 
         // 解析粘贴的文本
@@ -431,7 +482,7 @@
             // 使用课程代码作为分割标志，而不是依赖空行
             const allCourses = [];
             const dayMap = { 'Mo': 'Mon', 'Tu': 'Tue', 'We': 'Wed', 'Th': 'Thu', 'Fr': 'Fri' };
-            const validPrefixes = ['UCUG', 'UFUG', 'AIAA', 'SMMG', 'DSAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD','DLED','AIAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD'];
+            const validPrefixes = ['UCUG', 'UFUG', 'AIAA', 'SMMG', 'DSAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD','DLED','AIAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD','MOES'];
             
             // 将文本按行分割
             const allLines = cleanedText.split('\n').map(l => l.trim()).filter(l => l);
@@ -442,8 +493,10 @@
                 const line = allLines[i];
                 if (validPrefixes.some(prefix => line.startsWith(prefix))) {
                     courseStartIndices.push(i);
+                    console.log('找到课程代码行:', line, '在索引:', i);
                 }
             }
+            console.log('总共找到课程数量:', courseStartIndices.length);
             
             // 按课程代码分割成课程块
             for (let i = 0; i < courseStartIndices.length; i++) {
@@ -459,6 +512,9 @@
                                         courseLines.some(line => /^(Mo|Tu|We|Th|Fr)+ \d{2}:\d{2} - \d{2}:\d{2}/.test(line.trim()));
                 
                 if (!hasValidStructure) continue; // 跳过无效的课程块
+                
+                console.log('解析课程块:', courseLines[0]);
+                console.log('课程块内容:', courseLines);
 
                 const baseCourse = {};
                 baseCourse.code = courseLines[0]; // 第一行就是课程代码
@@ -476,31 +532,30 @@
                 
                 if (timeLines.length === 0) continue; // 没找到时间行，跳过这个课程
 
-                // 找到地点信息（通常在最后一个时间行之后）
+                // 找到地点信息（通常在最后一个时间行之后的第一行）
                 let location = '未知地点';
+                let instructor = '未知教师';
                 const lastTimeIndex = timeLines[timeLines.length - 1].index;
-                for (let j = lastTimeIndex + 1; j < courseLines.length; j++) {
-                    if (courseLines[j].startsWith('Rm')) {
-                        location = courseLines[j];
-                        break;
-                    }
-                }
                 
-                // 找到教师信息（在地点之后，学分之前）
-                let instructorLines = [];
-                let foundLocation = false;
-                for (let j = 0; j < courseLines.length; j++) {
-                    const line = courseLines[j];
-                    if (line.startsWith('Rm')) {
-                        foundLocation = true;
-                        continue;
-                    }
-                    if (foundLocation && !/^\(\d+\)$/.test(line) && !/^\d+\.\d{2}$/.test(line) && 
-                        !/^(Mo|Tu|We|Th|Fr)+ \d{2}:\d{2} - \d{2}:\d{2}/.test(line) && line !== '') {
-                        instructorLines.push(line);
+                // 地点信息应该在最后一个时间行的下一行
+                if (lastTimeIndex + 1 < courseLines.length) {
+                    const locationLine = courseLines[lastTimeIndex + 1].trim();
+                    // 过滤掉课程编号和学分信息
+                    if (locationLine && !/^\(\d+\)$/.test(locationLine) && !/^\d+\.\d{2}$/.test(locationLine)) {
+                        location = locationLine;
+                        console.log('找到地点:', location);
+                        
+                        // 教师信息在地点之后的下一行
+                        if (lastTimeIndex + 2 < courseLines.length) {
+                            const instructorLine = courseLines[lastTimeIndex + 2].trim();
+                            // 过滤掉课程编号和学分信息
+                            if (instructorLine && !/^\(\d+\)$/.test(instructorLine) && !/^\d+\.\d{2}$/.test(instructorLine)) {
+                                instructor = instructorLine;
+                                console.log('找到教师:', instructor);
+                            }
+                        }
                     }
                 }
-                const instructor = instructorLines.join(', ') || '未知教师';
 
                 // 处理每个时间段
                 timeLines.forEach(timeLine => {
@@ -510,20 +565,20 @@
                     const [, daysStr, startTime, endTime] = timeMatch;
                     
                     // 处理多天课程 (如 MoWe, TuTh) 或单天课程 (如 Mo, Fr)
-                    const days = daysStr.match(/(Mo|Tu|We|Th|Fr)/g);
-                    if (days) {
-                        days.forEach(day => {
-                            allCourses.push({
+                const days = daysStr.match(/(Mo|Tu|We|Th|Fr)/g);
+                if (days) {
+                    days.forEach(day => {
+                        allCourses.push({
                                 ...baseCourse,
                                 startTime: startTime,
                                 endTime: endTime,
                                 location: location,
                                 instructor: instructor,
-                                day: dayMap[day]
-                            });
+                            day: dayMap[day]
                         });
-                    }
-                });
+                    });
+                }
+            });
             }
             return allCourses;
         }
@@ -624,7 +679,7 @@
             // 按天分组课程
             const coursesByDay = {};
             days.forEach(day => coursesByDay[day] = []);
-            
+
             courses.forEach(course => {
                 if (days.includes(course.day)) {
                     coursesByDay[course.day].push(course);
@@ -643,27 +698,39 @@
                     const conflictCount = group.length;
                     
                     group.forEach((course, conflictIndex) => {
-                        // 分配颜色
-                        const baseCode = course.code.split('-')[0];
-                        if (!courseColors[baseCode]) {
-                            courseColors[baseCode] = colors[colorIndex % colors.length];
-                            colorIndex++;
-                        }
-                        const color = courseColors[baseCode];
-
-                        // 计算位置
-                        const [startH, startM] = course.startTime.split(':').map(Number);
-                        const [endH, endM] = course.endTime.split(':').map(Number);
-
-                        const top = ((startH - startHour) + startM / 60) * hourHeight;
-                        const height = ((endH + endM / 60) - (startH + startM / 60)) * hourHeight;
+                // 分配颜色
+                const baseCode = course.code.split('-')[0];
+                        let color;
                         
-                        // 创建课程块元素
-                        const eventEl = document.createElement('div');
-                        eventEl.className = 'event-item';
-                        eventEl.style.top = `${top}px`;
+                        if (course.isAdditional) {
+                            // 额外添加的课程使用特殊颜色
+                            if (course.code.includes('1103')) {
+                                color = '#ff9800'; // 体育课用橙色
+                            } else {
+                                color = '#9c27b0'; // 思政课用紫色
+                            }
+                        } else {
+                            // 原有课程使用原来的颜色分配逻辑
+                if (!courseColors[baseCode]) {
+                    courseColors[baseCode] = colors[colorIndex % colors.length];
+                    colorIndex++;
+                }
+                            color = courseColors[baseCode];
+                        }
+
+                // 计算位置
+                const [startH, startM] = course.startTime.split(':').map(Number);
+                const [endH, endM] = course.endTime.split(':').map(Number);
+
+                const top = ((startH - startHour) + startM / 60) * hourHeight;
+                const height = ((endH + endM / 60) - (startH + startM / 60)) * hourHeight;
+                
+                // 创建课程块元素
+                const eventEl = document.createElement('div');
+                eventEl.className = 'event-item';
+                eventEl.style.top = `${top}px`;
                         eventEl.style.height = `${height - 2}px`;
-                        eventEl.style.backgroundColor = color;
+                eventEl.style.backgroundColor = color;
                         
                         // 处理冲突布局：并排显示
                         if (conflictCount > 1) {
@@ -675,26 +742,680 @@
                             eventEl.classList.add('conflict-item');
                         }
 
-                        eventEl.innerHTML = `
-                            <div class="event-title">${course.code}</div>
-                            <div class="event-details">
-                                ${course.instructor}<br>
-                                ${course.location}
-                            </div>
-                        `;
-                        
-                        dayCols[dayIndex].appendChild(eventEl);
+                eventEl.innerHTML = `
+                    <div class="event-title">${course.code}</div>
+                    <div class="event-details">
+                        ${course.instructor}<br>
+                        ${course.location}
+                    </div>
+                `;
+                
+                    dayCols[dayIndex].appendChild(eventEl);
                     });
                 });
             });
         }
+        
+        // 加载额外课程数据
+        function loadAdditionalCourses() {
+            console.log('开始加载额外课程数据...');
+            
+            // 直接使用嵌入的完整课程数据，避免CORS问题
+            const klmsCourses = `MOES1001-L1
+(6465)
+Fr 18:00 - 20:50
+Rm LHB, C4
+TBA
+3.00
+
+MOES1003-L1
+(6466)
+Mo 18:00 - 20:50
+Rm LHA, C5
+Zhongjing WANG
+3.00
+
+MOES1003-L2
+(6485)
+We 18:00 - 20:50
+Rm LHB, C4
+Zhongjing WANG
+3.00
+
+MOES1003-L3
+(6486)
+Fr 15:00 - 17:50
+Rm 101, W1
+Tieying XU
+3.00
+
+MOES1003-L4
+(6487)
+Tu 18:00 - 20:50
+Rm LHC-L1, C3
+TBA
+3.00
+
+MOES1006-L1
+(6502)
+Th 18:00 - 20:50
+Rm LHB, C4
+He ZHENG
+3.00
+
+MOES1006-L2
+(6503)
+We 12:00 - 14:50
+Rm 102, E4
+He ZHENG
+3.00
+
+MOES1006-L3
+(6504)
+Fr 09:00 - 11:50
+Rm LHA, C5
+Tieying XU
+3.00
+
+MOES1103-Aerobic Dance I
+(6638)
+We 15:00 - 16:20
+Badminton Court 8
+Jiajia Hu
+3.00
+
+MOES1103-Aerobic Dance II
+(6639)
+We 16:30 - 17:50
+Badminton Court 8
+Jiajia Hu
+3.00
+
+MOES1103-Badminton I
+(6591)
+Tu 16:30 - 17:50
+Badminton Court
+Weidong LI
+3.00
+
+MOES1103-Badminton II
+(6600)
+Tu 18:00 - 19:20
+Badminton Court
+Weidong LI
+3.00
+
+MOES1103-Badminton III
+(6601)
+We 09:00 - 10:20
+Badminton Court
+Noah Bo FANG
+3.00
+
+MOES1103-Badminton IV
+(6602)
+We 10:30 - 11:50
+Badminton Court
+Noah Bo FANG
+3.00
+
+MOES1103-Basketball I
+(6568)
+Mo 15:00 - 16:30
+Basketball Court
+Chunhui WANG
+3.00
+
+MOES1103-Basketball II
+(6569)
+Mo 16:30 - 17:50
+Basketball Court
+Chunhui WANG
+3.00
+
+MOES1103-Basketball III
+(6584)
+Mo 18:00 - 19:20
+Basketball Court
+Chunhui WANG
+3.00
+
+MOES1103-Brazilian Jiujitsu Advanced
+(6672)
+Tu 09:00 - 10:20
+Multifunctional Gym Mat
+Dongye LYU
+3.00
+
+MOES1103-Brazilian Jiujitsu Basic and Self defense
+(6673)
+Tu 10:30 - 11:50
+Multifunctional Gym Mat
+Dongye LYU
+3.00
+
+MOES1103-Chinese Archery Advanced
+(6688)
+Th 17:00 - 18:20
+Badminton Court 8
+Chao JI
+3.00
+
+MOES1103-Chinese Archery Basics
+(6687)
+Th 15:30 - 16:50
+Badminton Court 8
+Chao JI
+3.00
+
+MOES1103-Chinese Body Building & Fitness (Healthcare class)
+(6671)
+Tu 18:00 - 19:20
+Badminton Court 8
+Zhijun ZHOU
+3.00
+
+MOES1103-Chinese Dance
+(6686)
+Mo 16:00 - 17:20
+Dance Room 116
+Yi XIE
+3.00
+
+MOES1103-CrossFit and Weight Training
+(6689)
+Tu 15:00 - 16:20
+Multifunctional Gym Mat
+Zhijun ZHOU
+3.00
+
+MOES1103-Sanda I
+(6626)
+We 15:00 - 16:20
+Multifunctional Gym Mat
+Chenlei MIAO
+3.00
+
+MOES1103-Sanda II
+(6627)
+We 16:30 - 17:50
+Multifunctional Gym Mat
+Chenlei MIAO
+3.00
+
+MOES1103-Soccer I
+(6587)
+Tu 18:00 - 19:20
+Football Field
+Junye HUANG
+3.00
+
+MOES1103-Soccer II
+(6588)
+Tu 19:30 - 20:50
+Football Field
+Junye HUANG
+3.00
+
+MOES1103-Soccer III
+(6589)
+We 18:00 - 19:20
+Football Field
+Junye HUANG
+3.00
+
+MOES1103-Soccer IV
+(6590)
+We 19:30 - 20:50
+Football Field
+Junye HUANG
+3.00
+
+MOES1103-Squash Advanced
+(6650)
+We 18:30 - 19:50
+Squash Court
+Jianfeng HUANG
+3.00
+
+MOES1103-Squash Basic I
+(6640)
+We 15:00 - 16:20
+Squash Court
+Jianfeng HUANG
+3.00
+
+MOES1103-Squash Basic II
+(6641)
+We 16:30 - 17:50
+Squash Court
+Jianfeng HUANG
+3.00
+
+MOES1103-Swimming I
+(6674)
+Mo 09:00 - 10:20
+Swimming Pool
+Xiaoying CHEN
+3.00
+
+MOES1103-Swimming II
+(6684)
+Mo 10:30 - 11:50
+Swimming Pool
+Xiaoying CHEN
+3.00
+
+MOES1103-Swimming II
+(6685)
+Mo 13:30 - 14:50
+Swimming Pool
+Xiaoying CHEN
+3.00
+
+MOES1103-Table Tennis I
+(6611)
+Tu 15:00 - 16:20
+Table Tennis Court
+Zilu QU
+3.00
+
+MOES1103-Table Tennis II
+(6612)
+Tu 16:30 - 17:50
+Table Tennis Court
+Zilu QU
+3.00
+
+MOES1103-Table Tennis III
+(6613)
+Tu 18:00 - 19:20
+Table Tennis Court
+Zilu QU
+3.00
+
+MOES1103-Table Tennis IV
+(6614)
+Th 16:30 - 17:50
+Table Tennis Court
+Zilu QU
+3.00
+
+MOES1103-Table Tennis V
+(6615)
+Th 18:00 - 19:20
+Table Tennis Court
+Zilu QU
+3.00
+
+MOES1103-Tennis I
+(6690)
+Tu 16:30 - 17:50
+Tennis Court
+Zhijun ZHOU
+3.00
+
+MOES1103-Tennis II
+(6691)
+We 16:30 - 17:50
+Tennis Court
+Noah Bo FANG
+3.00
+
+MOES1103-Volleyball I
+(6585)
+Tu 15:00 - 16:20
+Volleyball Court
+Yongguan DAI
+3.00
+
+MOES1103-Volleyball II
+(6586)
+Tu 16:30 - 17:50
+Volleyball Court
+Yongguan DAI
+3.00
+
+MOES1103-Wushu Historical Fencing I
+(6651)
+Tu 15:00 - 16:20
+Badminton Court 5
+Chenlei MIAO
+3.00
+
+MOES1103-Wushu Historical Fencing II
+(6652)
+Tu 16:30 - 17:50
+Badminton Court 5
+Chenlei MIAO
+3.00
+
+MOES1103-Wushu(Taolu) I
+(6628)
+We 15:00 - 16:20
+Badminton Court 5
+Ran LI
+3.00
+
+MOES1103-Wushu(Taolu) II
+(6629)
+We 16:30 - 17:50
+Badminton Court 5
+Ran LI
+3.00
+
+MOES1103-Yoga I (Healthcare Class)
+(6669)
+Tu 16:30 - 17:50
+Dance Room 116
+Shengnan HE
+3.00
+
+MOES1103-Yoga II (Healthcare Class)
+(6670)
+Tu 18:00 - 19:20
+Dance Room 116
+Shengnan HE
+3.00`;
+
+            console.log('使用嵌入的课程数据，内容长度:', klmsCourses.length);
+            console.log('文件前100个字符:', klmsCourses.substring(0, 100));
+            
+            additionalCourses = parseCourseText(klmsCourses);
+            console.log('解析完成，额外课程数量:', additionalCourses.length);
+            
+            if (additionalCourses.length > 0) {
+                console.log('第一个课程示例:', additionalCourses[0]);
+            } else {
+                console.log('警告：没有解析到任何课程！');
+            }
+            
+            console.log('开始渲染课程选择器...');
+            renderCourseSelector();
+        }
+        
+        // 备用课程数据
+        function loadFallbackCourses() {
+            console.log('使用备用课程数据...');
+            const klmsCourses = `MOES1001-L1
+(6465)
+Fr 18:00 - 20:50
+Rm LHB, C4
+TBA
+3.00
+
+MOES1003-L1
+(6466)
+Mo 18:00 - 20:50
+Rm LHA, C5
+Zhongjing WANG
+3.00
+
+MOES1003-L2
+(6485)
+We 18:00 - 20:50
+Rm LHB, C4
+Zhongjing WANG
+3.00
+
+MOES1003-L3
+(6486)
+Fr 15:00 - 17:50
+Rm 101, W1
+Tieying XU
+3.00
+
+MOES1003-L4
+(6487)
+Tu 18:00 - 20:50
+Rm LHC-L1, C3
+TBA
+3.00
+
+MOES1006-L1
+(6502)
+Th 18:00 - 20:50
+Rm LHB, C4
+He ZHENG
+3.00
+
+MOES1006-L2
+(6503)
+We 12:00 - 14:50
+Rm 102, E4
+He ZHENG
+3.00
+
+MOES1006-L3
+(6504)
+Fr 09:00 - 11:50
+Rm LHA, C5
+Tieying XU
+3.00
+
+MOES1103-Badminton I
+(6591)
+Tu 16:30 - 17:50
+Badminton Court
+Weidong LI
+1.00
+
+MOES1103-Basketball I
+(6568)
+Mo 15:00 - 16:30
+Basketball Court
+Chunhui WANG
+1.00
+
+MOES1103-Swimming I
+(6674)
+Mo 09:00 - 10:20
+Swimming Pool
+Xiaoying CHEN
+1.00
+
+MOES1103-Table Tennis I
+(6611)
+Tu 15:00 - 16:20
+Table Tennis Court
+Zilu QU
+1.00
+
+MOES1103-Tennis I
+(6690)
+Tu 16:30 - 17:50
+Tennis Court
+Zhijun ZHOU
+1.00
+
+MOES1103-Volleyball I
+(6585)
+Tu 15:00 - 16:20
+Volleyball Court
+Yongguan DAI
+1.00
+
+MOES1103-Aerobic Dance I
+(6638)
+We 15:00 - 16:20
+Badminton Court 8
+Jiajia Hu
+1.00
+
+MOES1103-Aerobic Dance II
+(6639)
+We 16:30 - 17:50
+Badminton Court 8
+Jiajia Hu
+1.00
+
+MOES1103-Badminton II
+(6600)
+Tu 18:00 - 19:20
+Badminton Court
+Weidong LI
+1.00
+
+MOES1103-Badminton III
+(6601)
+We 09:00 - 10:20
+Badminton Court
+Noah Bo FANG
+1.00
+
+MOES1103-Badminton IV
+(6602)
+We 10:30 - 11:50
+Badminton Court
+Noah Bo FANG
+1.00
+
+MOES1103-Basketball II
+(6569)
+Mo 16:30 - 17:50
+Basketball Court
+Chunhui WANG
+1.00
+
+MOES1103-Basketball III
+(6584)
+Mo 18:00 - 19:20
+Basketball Court
+Chunhui WANG
+1.00
+
+MOES1103-Soccer I
+(6587)
+Tu 18:00 - 19:20
+Football Field
+Junye HUANG
+1.00
+
+MOES1103-Soccer II
+(6588)
+Tu 19:30 - 20:50
+Football Field
+Junye HUANG
+1.00
+
+MOES1103-Soccer III
+(6589)
+We 18:00 - 19:20
+Football Field
+Junye HUANG
+1.00
+
+MOES1103-Soccer IV
+(6590)
+We 19:30 - 20:50
+Football Field
+Junye HUANG
+1.00`;
+            
+            additionalCourses = parseCourseText(klmsCourses);
+            console.log('Loaded fallback courses:', additionalCourses.length);
+        }
+        
+        // 渲染课程选择器
+        function renderCourseSelector() {
+            const politicsCourses = additionalCourses.filter(course => course.code.startsWith('MOES') && !course.code.includes('1103'));
+            const peCourses = additionalCourses.filter(course => course.code.includes('1103'));
+            
+            console.log('Politics courses:', politicsCourses.length);
+            console.log('PE courses:', peCourses.length);
+            
+            renderCourseOptions('politics-courses', politicsCourses);
+            renderCourseOptions('pe-courses', peCourses);
+        }
+        
+        // 渲染课程选项
+        function renderCourseOptions(containerId, courses) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            courses.forEach(course => {
+                const courseDiv = document.createElement('div');
+                courseDiv.style.cssText = `
+                    margin-bottom: 10px; 
+                    padding: 10px; 
+                    border: 1px solid #e0e0e0; 
+                    border-radius: 6px; 
+                    cursor: pointer; 
+                    transition: all 0.2s;
+                    background-color: #fff;
+                `;
+                
+                // 创建唯一的课程ID，避免特殊字符冲突
+                const uniqueId = `course-${course.code.replace(/[^a-zA-Z0-9]/g, '_')}-${course.day}-${course.startTime.replace(':', '')}`;
+                
+                courseDiv.innerHTML = `
+                    <input type="checkbox" id="${uniqueId}" style="margin-right: 10px;" data-course-code="${course.code}" data-course-day="${course.day}">
+                    <label for="${uniqueId}" style="cursor: pointer; font-size: 14px;">
+                        <strong>${course.code}</strong><br>
+                        <span style="color: #666;">${course.day} ${course.startTime} - ${course.endTime}</span><br>
+                        <span style="color: #888; font-size: 12px;">${course.location} | ${course.instructor}</span>
+                    </label>
+                `;
+                
+                courseDiv.addEventListener('click', function(e) {
+                    if (e.target.type !== 'checkbox') {
+                        const checkbox = courseDiv.querySelector('input[type="checkbox"]');
+                        checkbox.checked = !checkbox.checked;
+                    }
+                    updateCourseSelection();
+                });
+                
+                courseDiv.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = '#f0f8ff';
+                    this.style.borderColor = '#4a90e2';
+                });
+                
+                courseDiv.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = '#fff';
+                    this.style.borderColor = '#e0e0e0';
+                });
+                
+                container.appendChild(courseDiv);
+            });
+        }
+        
+        // 更新课程选择
+        function updateCourseSelection() {
+            const checkboxes = document.querySelectorAll('#course-selector input[type="checkbox"]:checked');
+            selectedAdditionalCourses = [];
+            
+            checkboxes.forEach(checkbox => {
+                const code = checkbox.getAttribute('data-course-code');
+                const day = checkbox.getAttribute('data-course-day');
+                
+                const course = additionalCourses.find(c => c.code === code && c.day === day);
+                if (course) {
+                    selectedAdditionalCourses.push({...course, isAdditional: true});
+                }
+            });
+        }
+        
+        // 添加选中课程按钮事件
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('add-selected-courses').addEventListener('click', function() {
+                updateCourseSelection();
+                renderTimetable([...mainCourses, ...selectedAdditionalCourses]);
+            });
+            
+            document.getElementById('clear-added-courses').addEventListener('click', function() {
+                selectedAdditionalCourses = [];
+                const checkboxes = document.querySelectorAll('#course-selector input[type="checkbox"]');
+                checkboxes.forEach(checkbox => checkbox.checked = false);
+                renderTimetable(mainCourses);
+            });
+        });
         
         // 页面加载时提供一个示例
         document.addEventListener('DOMContentLoaded', () => {
              document.getElementById('course-input').value = `AIAA 2290-L02
 (6367)
 Fr 13:30 - 16:20
-Rm 149, E1
+ Rm 149, E1 
 HU, Xuming
 3.00
 Open
@@ -718,7 +1439,7 @@ Open
 Delete
 UFUG 2103-L06
 (6575)
-MoWe 10:30 - 11:50
+ MoWe 10:30 - 11:50 
 Rm 102, W1
 YU, Huan
 3.00
@@ -728,7 +1449,7 @@ UFUG 2104-L01
 MoWe 10:30 - 11:50
 Rm 222, W1
 ZHANG, Xuning
-3.00`;
+ 3.00`;
         });
 
     </script>
