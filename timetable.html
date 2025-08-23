@@ -251,6 +251,50 @@
         <h1>HKUST Course Timetable Generator</h1>
         <p style="text-align: center; color: #666; margin-bottom: 20px; font-size: 16px;">Check the HKUST/HKUST(GZ) timetable during the add/drop period</p>
         
+        <!-- 公告区域 -->
+        <div id="announcement" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); color: #495057; padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #dee2e6;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; font-size: 18px; display: flex; align-items: center;">
+                    📢 重要公告
+                </h3>
+                <button id="announcement-toggle" style="background: #4a90e2; border: none; color: white; padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 12px; transition: all 0.3s;">
+                    收起
+                </button>
+            </div>
+            
+            <div id="announcement-content">
+                <p style="margin-bottom: 15px; line-height: 1.6;">
+                    大家好～为了方便大家下载和阅读这本《你的最后一本科广选课指南》，我们把它发布在了网上。其中包含双语，以供大家遇到疑惑时进行查看，我们<strong>强烈建议你阅读一遍这本指南</strong>。
+                </p>
+                
+                <div style="background: rgba(74, 144, 226, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(74, 144, 226, 0.2);">
+                    <p style="margin: 5px 0; display: flex; gap: 20px; align-items: center;">
+                        <span><strong>中文版🔗：</strong><a href="https://github.com/PLANCK234/USThandbook/releases/download/v1.0.0/Your_Final_HKUST.GZ._Course_Selection_Guide.CN.pdf" target="_blank" style="color: #4a90e2; text-decoration: none;">点击下载</a></span>
+                        <span><strong>英文版🔗：</strong><a href="https://github.com/PLANCK234/USThandbook/releases/download/v1.0.0/Your_Final_HKUST.GZ._Course_Selection_Guide.pdf" target="_blank" style="color: #4a90e2; text-decoration: none;">点击下载</a></span>
+                    </p>
+                </div>
+                
+                <div style="background: rgba(74, 144, 226, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(74, 144, 226, 0.2);">
+                    <p style="margin: 5px 0;"><strong>Unikorn答疑分享会🔗：</strong></p>
+                    <p style="margin: 5px 0; font-size: 14px;">链接：<a href="https://pan.baidu.com/s/1mRmUbQhYZfGMuRbGfjSxOA?pwd=unik" target="_blank" style="color: #4a90e2; text-decoration: none;">百度网盘</a> 提取码：<code style="background: rgba(74, 144, 226, 0.2); padding: 2px 6px; border-radius: 4px; color: #495057;">unik</code></p>
+                </div>
+                
+                <p style="margin-bottom: 15px; line-height: 1.6;">
+                    同时，我们想在这里额外推荐一些对选课有帮助的网站：
+                </p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin-bottom: 15px;">
+                    <div style="background: rgba(74, 144, 226, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(74, 144, 226, 0.2);">
+                        <strong>评课系统🔗：</strong><a href="https://unikorn.axfff.com/" target="_blank" style="color: #4a90e2; text-decoration: none;">点击访问</a>
+                    </div>
+                    <div style="background: rgba(74, 144, 226, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(74, 144, 226, 0.2);">
+                        <strong>排课助手🔗：</strong><a href="https://scheduler.unikorn.axfff.com/dashboard/2510" target="_blank" style="color: #4a90e2; text-decoration: none;">点击访问</a>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
         <!-- Tutorial Section -->
         <div class="tutorial-section" style="margin-bottom: 30px;">
             <div style="text-align: center; margin-bottom: 20px;">
@@ -424,6 +468,28 @@
                     tutorialToggle.style.backgroundColor = '#28a745';
                 }
                 isHidden = !isHidden;
+            });
+            
+            // 公告切换功能
+            const announcementToggle = document.getElementById('announcement-toggle');
+            const announcementContent = document.getElementById('announcement-content');
+            const announcement = document.getElementById('announcement');
+            let announcementHidden = false;
+
+            announcementToggle.addEventListener('click', function() {
+                if (announcementHidden) {
+                    // 显示公告
+                    announcementContent.style.display = 'block';
+                    announcement.style.padding = '20px';
+                    announcementToggle.textContent = '收起';
+                    announcementHidden = false;
+                } else {
+                    // 隐藏公告
+                    announcementContent.style.display = 'none';
+                    announcement.style.padding = '15px';
+                    announcementToggle.textContent = '展开';
+                    announcementHidden = true;
+                }
             });
         });
 
