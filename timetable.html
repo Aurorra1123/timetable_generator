@@ -252,17 +252,17 @@
         <p style="text-align: center; color: #666; margin-bottom: 20px; font-size: 16px;">Check the HKUST/HKUST(GZ) timetable during the add/drop period</p>
         
         <!-- 公告区域 -->
-        <div id="announcement" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); color: #495057; padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #dee2e6;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div id="announcement" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); color: #495057; padding: 15px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #dee2e6;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
                 <h3 style="margin: 0; font-size: 18px; display: flex; align-items: center;">
                     📢 重要公告
                 </h3>
                 <button id="announcement-toggle" style="background: #4a90e2; border: none; color: white; padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 12px; transition: all 0.3s;">
-                    收起
+                    展开
                 </button>
             </div>
             
-            <div id="announcement-content">
+            <div id="announcement-content" style="display: none;">
                 <p style="margin-bottom: 15px; line-height: 1.6;">
                     大家好～为了方便大家下载和阅读这本《你的最后一本科广选课指南》，我们把它发布在了网上。其中包含双语，以供大家遇到疑惑时进行查看，我们<strong>强烈建议你阅读一遍这本指南</strong>。
                 </p>
@@ -286,9 +286,6 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin-bottom: 15px;">
                     <div style="background: rgba(74, 144, 226, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(74, 144, 226, 0.2);">
                         <strong>评课系统🔗：</strong><a href="https://unikorn.axfff.com/" target="_blank" style="color: #4a90e2; text-decoration: none;">点击访问</a>
-                    </div>
-                    <div style="background: rgba(74, 144, 226, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(74, 144, 226, 0.2);">
-                        <strong>排课助手🔗：</strong><a href="https://scheduler.unikorn.axfff.com/dashboard/2510" target="_blank" style="color: #4a90e2; text-decoration: none;">点击访问</a>
                     </div>
                 </div>
                 
@@ -470,11 +467,11 @@
                 isHidden = !isHidden;
             });
             
-            // 公告切换功能
-            const announcementToggle = document.getElementById('announcement-toggle');
-            const announcementContent = document.getElementById('announcement-content');
-            const announcement = document.getElementById('announcement');
-            let announcementHidden = false;
+                         // 公告切换功能
+             const announcementToggle = document.getElementById('announcement-toggle');
+             const announcementContent = document.getElementById('announcement-content');
+             const announcement = document.getElementById('announcement');
+             let announcementHidden = true;
 
             announcementToggle.addEventListener('click', function() {
                 if (announcementHidden) {
@@ -888,6 +885,104 @@ Fr 09:00 - 11:50
 Rm LHA, C5
 Tieying XU
 3.00
+
+MOES5001-L1
+(6505)
+Fr 16:30 - 18:20
+Rm LHA, C5
+He ZHENG
+2.00
+
+MOES5001-L2
+(6506)
+Fr 13:30 - 15:20
+Rm LHB, C4
+He ZHENG
+2.00
+
+MOES5001-L3
+(6515)
+Th 13:00 - 14:50
+Rm LHA, C5
+Tieying XU
+2.00
+
+MOES6001-L1
+(6517)
+Th 13:00 - 14:50
+Rm LHB, C4
+TBA
+2.00
+
+MOES6001-L2
+(6525)
+We 10:00 - 11:50
+Rm LHB, C4
+Zhongjing WANG
+2.00
+
+UCMP6010-MA-L1
+(6526)
+Tu 19:00 - 20:50
+Rm LHB, C4
+Hao LIU
+0.50
+
+UCMP6010-MB-L1
+(6527)
+We 18:00 - 19:50
+Rm 101, W1
+Yi ZHANG
+0.50
+
+UCMP6010-MC-L1
+(6541)
+Fr 19:00 - 20:50
+Rm LHC-L1, C3
+Jinshu CHI
+0.50
+
+UCMP6010-MD-L1
+(6542)
+Th 19:00 - 20:50
+Rm 102, W4
+Lei LI
+0.50
+
+UCMP6010-ME-L1
+(6543)
+Tu 11:00 - 12:50
+Rm 102, W4
+Ying CUI
+0.50
+
+UCMP6010-MF-L1
+(6550)
+Fr 19:00 - 20:50
+Rm LHC-L1, C3
+Yang SHEN
+0.50
+
+UCMP6010-MG-L1
+(6551)
+Th 18:30 - 20:20
+Rm 102, W4
+Hang ZHAO
+0.50
+
+UCMP6010-MH-L1
+(6552)
+We 18:00 - 19:50
+Rm 101, W1
+Liang YUE
+0.50
+
+UCMP6010-MI-L1
+(6553)
+Tu 11:00 - 12:50
+Rm 102, W4
+Chee Keong TAN
+0.50
 
 MOES1103-Aerobic Dance I
 (6638)
@@ -1390,7 +1485,10 @@ Junye HUANG
         
         // 渲染课程选择器
         function renderCourseSelector() {
-            const politicsCourses = additionalCourses.filter(course => course.code.startsWith('MOES') && !course.code.includes('1103'));
+            const politicsCourses = additionalCourses.filter(course => 
+                (course.code.startsWith('MOES') && !course.code.includes('1103')) || 
+                course.code.startsWith('UCMP6010')
+            );
             const peCourses = additionalCourses.filter(course => course.code.includes('1103'));
             
             console.log('Politics courses:', politicsCourses.length);
