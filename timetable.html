@@ -603,7 +603,8 @@
                         'My Class Schedule', 'Request for Approval', 'Click here for approval',
                         'GO!', 'go to', 'Search', 'Plan', 'Enroll', 'My Academics',
                         'add', 'drop', 'swap', 'term information', 'You are not registered',
-                        'Select classes', 'Change', 'Enter', 'Collapsible section'
+                        'Select classes', 'Change', 'Enter', 'Collapsible section',
+                        'Class Schedule'
                     ];
                     
                     // 如果行包含任何不需要的模式，就过滤掉
@@ -616,7 +617,7 @@
             // 使用课程代码作为分割标志，而不是依赖空行
             const allCourses = [];
             const dayMap = { 'Mo': 'Mon', 'Tu': 'Tue', 'We': 'Wed', 'Th': 'Thu', 'Fr': 'Fri' };
-            const validPrefixes = ['UCUG', 'UFUG', 'AIAA', 'SMMG', 'DSAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD','DLED','AIAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD','MOES'];
+            const validPrefixes = ['UCUG', 'UFUG', 'AIAA', 'SMMG', 'DSAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD','DLED','AIAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD','MOES', 'MICS'];
             
             // 将文本按行分割
             const allLines = cleanedText.split('\n').map(l => l.trim()).filter(l => l);
@@ -651,7 +652,42 @@
                 console.log('课程块内容:', courseLines);
 
                 const baseCourse = {};
-                baseCourse.code = courseLines[0]; // 第一行就是课程代码
+                baseCourse.code = courseLines[0];
+                
+                // 尝试提取课程名称 (从 (数字) 行之后，第一个时间行之前的行)
+                let name = baseCourse.code;
+                let foundSpecificName = false;
+                let firstTimeIndex = -1;
+                
+                for (let j = 0; j < courseLines.length; j++) {
+                    if (/^(Mo|Tu|We|Th|Fr)+ \d{2}:\d{2} - \d{2}:\d{2}/.test(courseLines[j])) {
+                        firstTimeIndex = j;
+                        break;
+                    }
+                }
+
+                if (firstTimeIndex > 1) {
+                    for (let j = 1; j < firstTimeIndex; j++) {
+                        const line = courseLines[j].trim();
+                        if (line && !/^\(\d+\)$/.test(line)) {
+                            name = line;
+                            foundSpecificName = true;
+                            break;
+                        }
+                    }
+                }
+
+                // 如果没找到独立名称行，尝试从代码行拆分 (针对 MOES1103-Badminton 这种格式)
+                if (!foundSpecificName && baseCourse.code.includes('-')) {
+                    const parts = baseCourse.code.split('-');
+                    const suffix = parts.slice(1).join('-').trim();
+                    // 如果后缀看起来像名字（不仅仅是 L1, T01 等短标识），则提取
+                    if (suffix.length > 5 || !/^[LT]\d+$/.test(suffix)) {
+                        name = suffix;
+                    }
+                }
+                
+                baseCourse.name = name;
                 
                 // 查找所有时间行（可能有多个时间段）
                 const timeLines = [];
@@ -666,27 +702,34 @@
                 
                 if (timeLines.length === 0) continue; // 没找到时间行，跳过这个课程
 
-                // 找到地点信息（通常在最后一个时间行之后的第一行）
-                let location = '未知地点';
-                let instructor = '未知教师';
+                // 找到地点信息和教师信息
+                let location = '未指定';
+                let instructor = '未指定';
                 const lastTimeIndex = timeLines[timeLines.length - 1].index;
                 
-                // 地点信息应该在最后一个时间行的下一行
-                if (lastTimeIndex + 1 < courseLines.length) {
-                    const locationLine = courseLines[lastTimeIndex + 1].trim();
-                    // 过滤掉课程编号和学分信息
-                    if (locationLine && !/^\(\d+\)$/.test(locationLine) && !/^\d+\.\d{2}$/.test(locationLine)) {
-                        location = locationLine;
-                        console.log('找到地点:', location);
-                        
-                        // 教师信息在地点之后的下一行
+                // 搜索锚点：学分行（如 3.00）
+                let anchorIndex = -1;
+                for (let j = lastTimeIndex + 1; j < courseLines.length; j++) {
+                    if (/^\d+\.\d{2}$/.test(courseLines[j])) {
+                        anchorIndex = j;
+                        break;
+                    }
+                }
+
+                if (anchorIndex !== -1 && anchorIndex > lastTimeIndex + 1) {
+                    // 锚点上一行通常是教师
+                    instructor = courseLines[anchorIndex - 1];
+                    // 时间行和教师行之间的都是地点
+                    const locLines = courseLines.slice(lastTimeIndex + 1, anchorIndex - 1);
+                    if (locLines.length > 0) {
+                        location = [...new Set(locLines)].join('; ');
+                    }
+                } else {
+                    // 如果没找到 3.00 这种锚点，尝试取时间行后的行
+                    if (lastTimeIndex + 1 < courseLines.length) {
+                        location = courseLines[lastTimeIndex + 1];
                         if (lastTimeIndex + 2 < courseLines.length) {
-                            const instructorLine = courseLines[lastTimeIndex + 2].trim();
-                            // 过滤掉课程编号和学分信息
-                            if (instructorLine && !/^\(\d+\)$/.test(instructorLine) && !/^\d+\.\d{2}$/.test(instructorLine)) {
-                                instructor = instructorLine;
-                                console.log('找到教师:', instructor);
-                            }
+                            instructor = courseLines[lastTimeIndex + 2];
                         }
                     }
                 }
@@ -877,10 +920,9 @@
                         }
 
                 eventEl.innerHTML = `
-                    <div class="event-title">${course.code}</div>
+                    <div class="event-title">${course.name}</div>
                     <div class="event-details">
-                        ${course.instructor}<br>
-                        ${course.location}
+                        ${course.code} | ${course.instructor} | ${course.location}
                     </div>
                 `;
                 
@@ -1607,7 +1649,7 @@ Junye HUANG
                 courseDiv.innerHTML = `
                     <input type="checkbox" id="${uniqueId}" style="margin-right: 10px;" data-course-code="${course.code}" data-course-day="${course.day}">
                     <label for="${uniqueId}" style="cursor: pointer; font-size: 14px;">
-                        <strong>${course.code}</strong><br>
+                        <strong>${course.name}</strong> (${course.code})<br>
                         <span style="color: #666;">${course.day} ${course.startTime} - ${course.endTime}</span><br>
                         <span style="color: #888; font-size: 12px;">${course.location} | ${course.instructor}</span>
                     </label>
