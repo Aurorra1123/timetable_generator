@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HKUST Course Timetable Generator</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         /* --- 基本样式 --- */
         body {
@@ -72,6 +73,24 @@
 
         #generate-btn:hover {
             background-color: #357abd;
+        }
+
+        #save-image-btn {
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-left: 10px;
+            display: none; /* 初始隐藏，生成课表后显示 */
+        }
+
+        #save-image-btn:hover {
+            background-color: #e67e22;
         }
 
         /* --- 课表网格 --- */
@@ -368,7 +387,10 @@
         
         <div class="input-area">
             <textarea id="course-input" placeholder="Paste your course information here..."></textarea>
-            <button id="generate-btn">Generate Timetable</button>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+                <button id="generate-btn">Generate Timetable</button>
+                <button id="save-image-btn">Save as Image</button>
+            </div>
         </div>
         <div id="timetable-container">
             </div>
@@ -520,7 +542,50 @@
             
             // 显示课程选择模块
             document.getElementById('course-selector').style.display = 'block';
+            // 显示保存图片按钮
+            document.getElementById('save-image-btn').style.display = 'block';
             loadAdditionalCourses();
+        });
+
+        document.getElementById('save-image-btn').addEventListener('click', function() {
+            const container = document.getElementById('timetable-container');
+            const btn = this;
+            const originalText = btn.textContent;
+            
+            btn.textContent = 'Generating...';
+            btn.disabled = true;
+            btn.style.backgroundColor = '#ccc';
+
+            // 为了捕获完整的课表，确保它在视图中
+            // 实际上 html2canvas 即使在滚动条外也能捕获，但容器宽度需要是 full
+            
+            html2canvas(container, {
+                scale: 2, // 提高清晰度
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff',
+                // 确保捕获完整的 grid
+                onclone: (clonedDoc) => {
+                    const clonedContainer = clonedDoc.getElementById('timetable-container');
+                    clonedContainer.style.width = '1200px'; // 固定宽度以防响应式错位
+                    clonedContainer.style.padding = '20px';
+                }
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `HKUST-Timetable-${new Date().toISOString().split('T')[0]}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                btn.textContent = originalText;
+                btn.disabled = false;
+                btn.style.backgroundColor = '#f39c12';
+            }).catch(err => {
+                console.error('Save image failed:', err);
+                alert('Failed to save image. Please try again.');
+                btn.textContent = originalText;
+                btn.disabled = false;
+                btn.style.backgroundColor = '#f39c12';
+            });
         });
 
         // 解析粘贴的文本
@@ -538,7 +603,8 @@
                         'My Class Schedule', 'Request for Approval', 'Click here for approval',
                         'GO!', 'go to', 'Search', 'Plan', 'Enroll', 'My Academics',
                         'add', 'drop', 'swap', 'term information', 'You are not registered',
-                        'Select classes', 'Change', 'Enter', 'Collapsible section'
+                        'Select classes', 'Change', 'Enter', 'Collapsible section',
+                        'Class Schedule'
                     ];
                     
                     // 如果行包含任何不需要的模式，就过滤掉
@@ -551,7 +617,7 @@
             // 使用课程代码作为分割标志，而不是依赖空行
             const allCourses = [];
             const dayMap = { 'Mo': 'Mon', 'Tu': 'Tue', 'We': 'Wed', 'Th': 'Thu', 'Fr': 'Fri' };
-            const validPrefixes = ['UCUG', 'UFUG', 'AIAA', 'SMMG', 'DSAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD','DLED','AIAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD','MOES'];
+            const validPrefixes = ['UCUG', 'UFUG', 'AIAA', 'SMMG', 'DSAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD','DLED','AIAA','AMAT','BSBE','CMAA','CNCG','FDLE','DDSAA','EOAS','FTEC','FUNH','INFH','INTR','IOTA','IPEN','LANG','MIC','MSS','MP','DEVP','LED','ROAS','SEEN','SOCH','SYSH','UCMP','UGOD','MOES', 'MICS'];
             
             // 将文本按行分割
             const allLines = cleanedText.split('\n').map(l => l.trim()).filter(l => l);
@@ -586,7 +652,42 @@
                 console.log('课程块内容:', courseLines);
 
                 const baseCourse = {};
-                baseCourse.code = courseLines[0]; // 第一行就是课程代码
+                baseCourse.code = courseLines[0];
+                
+                // 尝试提取课程名称 (从 (数字) 行之后，第一个时间行之前的行)
+                let name = baseCourse.code;
+                let foundSpecificName = false;
+                let firstTimeIndex = -1;
+                
+                for (let j = 0; j < courseLines.length; j++) {
+                    if (/^(Mo|Tu|We|Th|Fr)+ \d{2}:\d{2} - \d{2}:\d{2}/.test(courseLines[j])) {
+                        firstTimeIndex = j;
+                        break;
+                    }
+                }
+
+                if (firstTimeIndex > 1) {
+                    for (let j = 1; j < firstTimeIndex; j++) {
+                        const line = courseLines[j].trim();
+                        if (line && !/^\(\d+\)$/.test(line)) {
+                            name = line;
+                            foundSpecificName = true;
+                            break;
+                        }
+                    }
+                }
+
+                // 如果没找到独立名称行，尝试从代码行拆分 (针对 MOES1103-Badminton 这种格式)
+                if (!foundSpecificName && baseCourse.code.includes('-')) {
+                    const parts = baseCourse.code.split('-');
+                    const suffix = parts.slice(1).join('-').trim();
+                    // 如果后缀看起来像名字（不仅仅是 L1, T01 等短标识），则提取
+                    if (suffix.length > 5 || !/^[LT]\d+$/.test(suffix)) {
+                        name = suffix;
+                    }
+                }
+                
+                baseCourse.name = name;
                 
                 // 查找所有时间行（可能有多个时间段）
                 const timeLines = [];
@@ -601,27 +702,34 @@
                 
                 if (timeLines.length === 0) continue; // 没找到时间行，跳过这个课程
 
-                // 找到地点信息（通常在最后一个时间行之后的第一行）
-                let location = '未知地点';
-                let instructor = '未知教师';
+                // 找到地点信息和教师信息
+                let location = '未指定';
+                let instructor = '未指定';
                 const lastTimeIndex = timeLines[timeLines.length - 1].index;
                 
-                // 地点信息应该在最后一个时间行的下一行
-                if (lastTimeIndex + 1 < courseLines.length) {
-                    const locationLine = courseLines[lastTimeIndex + 1].trim();
-                    // 过滤掉课程编号和学分信息
-                    if (locationLine && !/^\(\d+\)$/.test(locationLine) && !/^\d+\.\d{2}$/.test(locationLine)) {
-                        location = locationLine;
-                        console.log('找到地点:', location);
-                        
-                        // 教师信息在地点之后的下一行
+                // 搜索锚点：学分行（如 3.00）
+                let anchorIndex = -1;
+                for (let j = lastTimeIndex + 1; j < courseLines.length; j++) {
+                    if (/^\d+\.\d{2}$/.test(courseLines[j])) {
+                        anchorIndex = j;
+                        break;
+                    }
+                }
+
+                if (anchorIndex !== -1 && anchorIndex > lastTimeIndex + 1) {
+                    // 锚点上一行通常是教师
+                    instructor = courseLines[anchorIndex - 1];
+                    // 时间行和教师行之间的都是地点
+                    const locLines = courseLines.slice(lastTimeIndex + 1, anchorIndex - 1);
+                    if (locLines.length > 0) {
+                        location = [...new Set(locLines)].join('; ');
+                    }
+                } else {
+                    // 如果没找到 3.00 这种锚点，尝试取时间行后的行
+                    if (lastTimeIndex + 1 < courseLines.length) {
+                        location = courseLines[lastTimeIndex + 1];
                         if (lastTimeIndex + 2 < courseLines.length) {
-                            const instructorLine = courseLines[lastTimeIndex + 2].trim();
-                            // 过滤掉课程编号和学分信息
-                            if (instructorLine && !/^\(\d+\)$/.test(instructorLine) && !/^\d+\.\d{2}$/.test(instructorLine)) {
-                                instructor = instructorLine;
-                                console.log('找到教师:', instructor);
-                            }
+                            instructor = courseLines[lastTimeIndex + 2];
                         }
                     }
                 }
@@ -812,10 +920,9 @@
                         }
 
                 eventEl.innerHTML = `
-                    <div class="event-title">${course.code}</div>
+                    <div class="event-title">${course.name}</div>
                     <div class="event-details">
-                        ${course.instructor}<br>
-                        ${course.location}
+                        ${course.code} | ${course.instructor} | ${course.location}
                     </div>
                 `;
                 
@@ -830,459 +937,480 @@
             console.log('开始加载额外课程数据...');
             
             // 直接使用嵌入的完整课程数据，避免CORS问题
-            const klmsCourses = `MOES1001-L1
-(6465)
-Fr 18:00 - 20:50
-Rm LHB, C4
-TBA
-3.00
-
-MOES1003-L1
-(6466)
-Mo 18:00 - 20:50
-Rm LHA, C5
-Zhongjing WANG
-3.00
-
-MOES1003-L2
-(6485)
-We 18:00 - 20:50
-Rm LHB, C4
-Zhongjing WANG
-3.00
-
-MOES1003-L3
-(6486)
-Fr 15:00 - 17:50
-Rm 101, W1
-Tieying XU
-3.00
-
-MOES1003-L4
-(6487)
-Tu 18:00 - 20:50
-Rm LHC-L1, C3
-TBA
-3.00
-
-MOES1006-L1
-(6502)
-Th 18:00 - 20:50
-Rm LHB, C4
-He ZHENG
-3.00
-
-MOES1006-L2
-(6503)
-We 12:00 - 14:50
-Rm 102, E4
-He ZHENG
-3.00
-
-MOES1006-L3
-(6504)
-Fr 09:00 - 11:50
-Rm LHA, C5
-Tieying XU
-3.00
-
-MOES5001-L1
-(6505)
-Fr 16:30 - 18:20
-Rm LHA, C5
-He ZHENG
-2.00
-
-MOES5001-L2
-(6506)
-Fr 13:30 - 15:20
-Rm LHB, C4
-He ZHENG
-2.00
-
-MOES5001-L3
-(6515)
-Th 13:00 - 14:50
-Rm LHA, C5
-Tieying XU
-2.00
-
-MOES6001-L1
-(6517)
-Th 13:00 - 14:50
-Rm LHB, C4
-TBA
-2.00
-
-MOES6001-L2
-(6525)
-We 10:00 - 11:50
-Rm LHB, C4
-Zhongjing WANG
-2.00
-
-UCMP6010-MA-L1
-(6526)
+            const klmsCourses = `MOES1002-L1
+(6586)
 Tu 19:00 - 20:50
-Rm LHB, C4
-Hao LIU
-0.50
+Rm 147, E1
+WANG, Zhongjing
+3.00
 
-UCMP6010-MB-L1
-(6527)
-We 18:00 - 19:50
-Rm 101, W1
-Yi ZHANG
-0.50
+MOES1002-L2
+(6587)
+Fr 17:30 - 19:20
+Rm 122, E1
+TBA
+3.00
 
-UCMP6010-MC-L1
-(6541)
-Fr 19:00 - 20:50
+MOES1004-L1
+(6000)
+Mo 18:00 - 20:50
 Rm LHC-L1, C3
-Jinshu CHI
-0.50
+WANG, Zhongjing
+3.00
 
-UCMP6010-MD-L1
-(6542)
-Th 19:00 - 20:50
+MOES1004-L2
+(6037)
+Fr 12:00 - 14:50
 Rm 102, W4
-Lei LI
-0.50
+XU, Tieying
+3.00
 
-UCMP6010-ME-L1
-(6543)
-Tu 11:00 - 12:50
-Rm 102, W4
-Ying CUI
-0.50
-
-UCMP6010-MF-L1
-(6550)
-Fr 19:00 - 20:50
-Rm LHC-L1, C3
-Yang SHEN
-0.50
-
-UCMP6010-MG-L1
-(6551)
-Th 18:30 - 20:20
-Rm 102, W4
-Hang ZHAO
-0.50
-
-UCMP6010-MH-L1
-(6552)
-We 18:00 - 19:50
-Rm 101, W1
-Liang YUE
-0.50
-
-UCMP6010-MI-L1
+MOES1004-L3
 (6553)
-Tu 11:00 - 12:50
+Mo 18:00 - 20:50
+Rm LHB, C4
+TBA
+3.00
+
+MOES1004-L4
+(6554)
+Mo 09:00 - 11:50
+Rm 102, E4
+WANG, Zhongjing
+3.00
+
+MOES1005-L1
+(6555)
+We 18:00 - 20:50
+Rm 102, E4
+TBA
+3.00
+
+MOES1005-L2
+(6567)
+Tu 13:30 - 16:20
+Rm LHC-L1, C3
+ZHENG, He
+3.00
+
+MOES1005-L3
+(6568)
+Tu 10:30 - 13:20
 Rm 102, W4
-Chee Keong TAN
-0.50
+ZHENG, He
+3.00
+
+MOES1005-L4
+(6569)
+We 13:30 - 16:20
+Rm 101, E1
+TBA
+3.00
 
 MOES1103-Aerobic Dance I
-(6638)
+(6217)
 We 15:00 - 16:20
 Badminton Court 8
-Jiajia Hu
+Hu, Jiajia
 3.00
 
 MOES1103-Aerobic Dance II
-(6639)
+(6240)
 We 16:30 - 17:50
 Badminton Court 8
-Jiajia Hu
+Hu, Jiajia
 3.00
 
 MOES1103-Badminton I
-(6591)
+(6241)
 Tu 16:30 - 17:50
 Badminton Court
-Weidong LI
+LI, Weidong
 3.00
 
 MOES1103-Badminton II
-(6600)
+(6244)
 Tu 18:00 - 19:20
 Badminton Court
-Weidong LI
+LI, Weidong
 3.00
 
 MOES1103-Badminton III
-(6601)
-We 09:00 - 10:20
+(6245)
+We 10:30 - 11:50
 Badminton Court
-Noah Bo FANG
+FANG, Bo
 3.00
 
 MOES1103-Badminton IV
-(6602)
-We 10:30 - 11:50
+(6246)
+Mo 09:00 - 10:20
 Badminton Court
-Noah Bo FANG
+LUO, Changan
+3.00
+
+MOES1103-Badminton V
+(6247)
+Mo 10:30 - 11:50
+Badminton Court
+LUO, Changan
 3.00
 
 MOES1103-Basketball I
-(6568)
-Mo 15:00 - 16:30
+(6261)
+Mo 09:00 - 10:20
 Basketball Court
-Chunhui WANG
+ZHANG, Huaizhao
 3.00
 
 MOES1103-Basketball II
-(6569)
-Mo 16:30 - 17:50
+(6262)
+Mo 10:30 - 11:50
 Basketball Court
-Chunhui WANG
+ZHANG, Huaizhao
 3.00
 
 MOES1103-Basketball III
-(6584)
-Mo 18:00 - 19:20
+(6263)
+Mo 15:00 - 16:20
 Basketball Court
-Chunhui WANG
-3.00
-
-MOES1103-Brazilian Jiujitsu Advanced
-(6672)
-Tu 09:00 - 10:20
-Multifunctional Gym Mat
-Dongye LYU
+ZHANG, Huaizhao
 3.00
 
 MOES1103-Brazilian Jiujitsu Basic and Self defense
-(6673)
+(6264)
 Tu 10:30 - 11:50
 Multifunctional Gym Mat
-Dongye LYU
+LYU, Dongye
 3.00
 
 MOES1103-Chinese Archery Advanced
-(6688)
-Th 17:00 - 18:20
+(6272)
+Tu 16:30 - 17:50
 Badminton Court 8
-Chao JI
+JI, Chao
 3.00
 
-MOES1103-Chinese Archery Basics
-(6687)
-Th 15:30 - 16:50
+MOES1103-Chinese Archery Basics I
+(6270)
+Tu 13:30 - 14:50
 Badminton Court 8
-Chao JI
+JI, Chao
+3.00
+
+MOES1103-Chinese Archery Basics II
+(6271)
+Tu 15:00 - 16:20
+Badminton Court 8
+JI, Chao
 3.00
 
 MOES1103-Chinese Body Building & Fitness (Healthcare class)
-(6671)
-Tu 18:00 - 19:20
+(6295)
+Mo 18:00 - 19:20
 Badminton Court 8
-Zhijun ZHOU
+ZHOU, Zhijun
 3.00
 
 MOES1103-Chinese Dance
-(6686)
+(6296)
 Mo 16:00 - 17:20
 Dance Room 116
-Yi XIE
+XIE, Yi
 3.00
 
 MOES1103-CrossFit and Weight Training
-(6689)
-Tu 15:00 - 16:20
+(6297)
+Mo 13:30 - 14:50
 Multifunctional Gym Mat
-Zhijun ZHOU
+ZHOU, Zhijun
 3.00
 
-MOES1103-Sanda I
-(6626)
-We 15:00 - 16:20
-Multifunctional Gym Mat
-Chenlei MIAO
-3.00
-
-MOES1103-Sanda II
-(6627)
-We 16:30 - 17:50
-Multifunctional Gym Mat
-Chenlei MIAO
+MOES1103-Korfball
+(6306)
+Mo 13:30 - 14:50
+Basketball Court
+ZHANG, Huaizhao
 3.00
 
 MOES1103-Soccer I
-(6587)
+(6307)
 Tu 18:00 - 19:20
 Football Field
-Junye HUANG
+HUANG, Junye
 3.00
 
 MOES1103-Soccer II
-(6588)
+(6332)
 Tu 19:30 - 20:50
 Football Field
-Junye HUANG
+HUANG, Junye
 3.00
 
 MOES1103-Soccer III
-(6589)
+(6369)
 We 18:00 - 19:20
 Football Field
-Junye HUANG
+HUANG, Junye
 3.00
 
 MOES1103-Soccer IV
-(6590)
+(6370)
 We 19:30 - 20:50
 Football Field
-Junye HUANG
+HUANG, Junye
 3.00
 
 MOES1103-Squash Advanced
-(6650)
+(6392)
 We 18:30 - 19:50
 Squash Court
-Jianfeng HUANG
+HUANG, Jianfeng
 3.00
 
 MOES1103-Squash Basic I
-(6640)
+(6386)
 We 15:00 - 16:20
 Squash Court
-Jianfeng HUANG
+HUANG, Jianfeng
 3.00
 
 MOES1103-Squash Basic II
-(6641)
+(6391)
 We 16:30 - 17:50
 Squash Court
-Jianfeng HUANG
+HUANG, Jianfeng
 3.00
 
 MOES1103-Swimming I
-(6674)
+(6393)
 Mo 09:00 - 10:20
 Swimming Pool
-Xiaoying CHEN
+CHEN, Xiaoying
 3.00
 
 MOES1103-Swimming II
-(6684)
+(6421)
 Mo 10:30 - 11:50
 Swimming Pool
-Xiaoying CHEN
+CHEN, Xiaoying
 3.00
 
-MOES1103-Swimming II
-(6685)
+MOES1103-Swimming III
+(6422)
 Mo 13:30 - 14:50
 Swimming Pool
-Xiaoying CHEN
+CHEN, Xiaoying
 3.00
 
 MOES1103-Table Tennis I
-(6611)
+(6432)
 Tu 15:00 - 16:20
 Table Tennis Court
-Zilu QU
+QU, Zilu
 3.00
 
 MOES1103-Table Tennis II
-(6612)
+(6433)
 Tu 16:30 - 17:50
 Table Tennis Court
-Zilu QU
+QU, Zilu
 3.00
 
 MOES1103-Table Tennis III
-(6613)
+(6434)
 Tu 18:00 - 19:20
 Table Tennis Court
-Zilu QU
+QU, Zilu
 3.00
 
 MOES1103-Table Tennis IV
-(6614)
+(6451)
 Th 16:30 - 17:50
 Table Tennis Court
-Zilu QU
+QU, Zilu
 3.00
 
 MOES1103-Table Tennis V
-(6615)
+(6468)
 Th 18:00 - 19:20
 Table Tennis Court
-Zilu QU
+QU, Zilu
 3.00
 
 MOES1103-Tennis I
-(6690)
-Tu 16:30 - 17:50
+(6469)
+Mo 15:00 - 16:20
 Tennis Court
-Zhijun ZHOU
+ZHOU, Zhijun
 3.00
 
 MOES1103-Tennis II
-(6691)
-We 16:30 - 17:50
+(6470)
+Mo 16:30 - 17:50
 Tennis Court
-Noah Bo FANG
+ZHOU, Zhijun
 3.00
 
-MOES1103-Volleyball I
-(6585)
-Tu 15:00 - 16:20
-Volleyball Court
-Yongguan DAI
-3.00
-
-MOES1103-Volleyball II
-(6586)
-Tu 16:30 - 17:50
-Volleyball Court
-Yongguan DAI
+MOES1103-Women Soccer
+(6371)
+Tu 09:00 - 10:20
+Football Field
+LUO, Changan
 3.00
 
 MOES1103-Wushu Historical Fencing I
-(6651)
+(6532)
 Tu 15:00 - 16:20
 Badminton Court 5
-Chenlei MIAO
+MIAO, Chenlei
 3.00
 
 MOES1103-Wushu Historical Fencing II
-(6652)
+(6533)
 Tu 16:30 - 17:50
 Badminton Court 5
-Chenlei MIAO
+MIAO, Chenlei
 3.00
 
-MOES1103-Wushu(Taolu) I
-(6628)
+MOES1103-Wushu Sanda I
+(6471)
+We 15:00 - 16:20
+Multifunctional Gym Mat
+MIAO, Chenlei
+3.00
+
+MOES1103-Wushu Sanda II
+(6509)
+We 16:30 - 17:50
+Multifunctional Gym Mat
+MIAO, Chenlei
+3.00
+
+MOES1103-Wushu Taolu I
+(6534)
 We 15:00 - 16:20
 Badminton Court 5
-Ran LI
+LI, Ran
 3.00
 
-MOES1103-Wushu(Taolu) II
-(6629)
+MOES1103-Wushu Taolu II
+(6535)
 We 16:30 - 17:50
 Badminton Court 5
-Ran LI
+LI, Ran
 3.00
 
 MOES1103-Yoga I (Healthcare Class)
-(6669)
+(6536)
 Tu 16:30 - 17:50
 Dance Room 116
-Shengnan HE
+HE, Shengnan
 3.00
 
 MOES1103-Yoga II (Healthcare Class)
-(6670)
+(6537)
 Tu 18:00 - 19:20
 Dance Room 116
-Shengnan HE
+HE, Shengnan
+3.00
+
+UCUG1000-L1
+(6042)
+Tu 16:30 - 17:50
+Thu 16:30 - 17:50
+Rm 101, W4
+3.00
+
+UCUG1000-L2
+(6177)
+Mo 15:00 - 16:20
+Rm 101, W4
+LI, Ran
+3.00
+
+UCUG1000-L3
+(6212)
+Mo 19:30 - 20:50
+Wed 19:30 - 20:50
+Rm 101, W4
+3.00
+
+UCUG1000-L4
+(6216)
+Tu 09:00 - 10:20
+Thu 09:00 - 10:20
+Rm 101, W4
+3.00
+
+UCUG1000-L01
+(6423)
+Mo 19:30 - 20:50
+Rm 101, W4
+WANG, Binzhe
+3.00
+
+UCUG1000-L02
+(6538)
+Tu 16:30 - 17:50
+Rm 101, W4
+WANG, Binzhe
+3.00
+
+UCUG1000-L01
+(6617)
+Tu 09:00 - 10:20
+Rm 101, W4
+YU, Liuqian
+3.00
+
+UCUG1000-L02
+(6618)
+Mo 10:30 - 11:50
+Rm 201, E1
+YU, Liuqian
+3.00
+
+UCUG1000-L03
+(6619)
+Mo 09:00 - 10:20
+Wed 09:00 - 10:20
+Rm 201, E1
+3.00
+
+UCUG1000-L04
+(6620)
+We 16:30 - 17:50
+Fri 16:30 - 17:50
+Rm 101, E4
+3.00
+
+UCUG1000-L01
+(6641)
+Mo 10:30 - 11:50
+Wed 10:30 - 11:50
+Rm 201, E1
+3.00
+
+UCUG1000-L02
+(6642)
+Mo 13:30 - 14:50
+Wed 13:30 - 14:50
+Rm 233, W1
+3.00
+
+UCUG1000-L01
+(6643)
+Tu 10:30 - 11:50
+Rm 101, W4
+WANG, Binzhe
+3.00
+
+UCUG1000-L02
+(6644)
+Tu 16:30 - 17:50
+Rm 222, W1
+WANG, Binzhe
 3.00`;
 
             console.log('使用嵌入的课程数据，内容长度:', klmsCourses.length);
@@ -1521,7 +1649,7 @@ Junye HUANG
                 courseDiv.innerHTML = `
                     <input type="checkbox" id="${uniqueId}" style="margin-right: 10px;" data-course-code="${course.code}" data-course-day="${course.day}">
                     <label for="${uniqueId}" style="cursor: pointer; font-size: 14px;">
-                        <strong>${course.code}</strong><br>
+                        <strong>${course.name}</strong> (${course.code})<br>
                         <span style="color: #666;">${course.day} ${course.startTime} - ${course.endTime}</span><br>
                         <span style="color: #888; font-size: 12px;">${course.location} | ${course.instructor}</span>
                     </label>
