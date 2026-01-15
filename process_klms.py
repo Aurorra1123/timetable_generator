@@ -123,11 +123,11 @@ def format_for_timetable(courses):
 def main():
     if len(sys.argv) != 2:
         print("使用方法: python process_klms.py <klms_data_file>")
-        print("示例: python process_klms.py klms.json")
+        print("示例: python process_klms.py klms.txt")
         sys.exit(1)
     
     input_file = sys.argv[1]
-    output_file = input_file.replace('.json', '_processed.txt')
+    output_file = input_file.replace('.txt', '_processed.txt')
     
     try:
         print(f"正在处理文件: {input_file}")
