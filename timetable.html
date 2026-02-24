@@ -665,8 +665,9 @@
                 if (!foundSpecificName && baseCourse.code.includes('-')) {
                     const parts = baseCourse.code.split('-');
                     const suffix = parts.slice(1).join('-').trim();
-                    // 如果后缀看起来像名字（不仅仅是 L1, T01 等短标识），则提取
-                    if (suffix.length > 5 || !/^[LT]\d+$/.test(suffix)) {
+                    // 节次代码（L01/T01/LA01 等）不当作名称，保留完整课号；仅当后缀像课程名（如 Badminton I）时才用后缀作名称
+                    const isSectionCode = /^L\d+$|^T\d+$|^LA\d+$/i.test(suffix);
+                    if (!isSectionCode && (suffix.length > 5 || !/^[LT]\d+$/.test(suffix))) {
                         name = suffix;
                     }
                 }
@@ -903,10 +904,13 @@
                             eventEl.classList.add('conflict-item');
                         }
 
+                const detailsLine = course.name === course.code
+                    ? `${course.instructor} | ${course.location}`
+                    : `${course.code} | ${course.instructor} | ${course.location}`;
                 eventEl.innerHTML = `
                     <div class="event-title">${course.name}</div>
                     <div class="event-details">
-                        ${course.code} | ${course.instructor} | ${course.location}
+                        ${detailsLine}
                     </div>
                 `;
                 
